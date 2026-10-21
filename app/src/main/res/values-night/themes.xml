@@ -10,5 +10,6 @@
         <item name="android:textColorSecondary">@color/colorTextSecondary</item>
         <item name="colorControlNormal">@color/colorTextSecondary</item>
         <item name="bottomNavigationStyle">@style/Widget.MelodyVerse.BottomNavigationView</item>
+        <item name="android:windowAnimationStyle">@style/Animation.MelodyVerse.Activity</item>
     </style>
 </resources>

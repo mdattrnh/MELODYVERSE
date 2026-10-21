@@ -10,6 +10,17 @@
         <item name="android:textColorSecondary">@color/colorTextSecondary</item>
         <item name="colorControlNormal">@color/colorTextSecondary</item>
         <item name="bottomNavigationStyle">@style/Widget.MelodyVerse.BottomNavigationView</item>
+        <item name="android:windowAnimationStyle">@style/Animation.MelodyVerse.Activity</item>
+    </style>
+
+    <!-- Chuyển màn hình: hiện dần / mờ dần thay cho hiệu ứng trượt-phóng mặc định (gây giật khi đổi tab) -->
+    <style name="Animation.MelodyVerse.Activity" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/tab_fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/tab_hold</item>
+        <item name="android:activityCloseEnterAnimation">@anim/tab_hold</item>
+        <item name="android:activityCloseExitAnimation">@anim/tab_fade_out</item>
+        <item name="android:taskToFrontEnterAnimation">@anim/tab_fade_in</item>
+        <item name="android:taskToFrontExitAnimation">@anim/tab_hold</item>
     </style>
 
     <style name="Theme.MELODYVERSE" parent="Base.Theme.MELODYVERSE" />

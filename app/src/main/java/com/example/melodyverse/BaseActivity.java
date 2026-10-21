@@ -31,6 +31,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
  */
 public abstract class BaseActivity extends AppCompatActivity implements SyncManager.Listener {
 
+    private static final String EXTRA_TAB_SWITCH = "EXTRA_TAB_SWITCH";
+
     protected BottomNavigationView bottomNavigationView;
     protected View miniPlayerContainer;
     protected View frameMiniPlayerArt;
@@ -226,13 +228,33 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
 
         if (intent != null) {
             intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.putExtra(EXTRA_TAB_SWITCH, true);
             startActivity(intent);
-            // Áp dụng hiệu ứng chuyển trang theo cài đặt "smooth_anim"
-            boolean smoothAnim = getSharedPreferences("melodyverse_settings", MODE_PRIVATE)
-                    .getBoolean("smooth_anim", true);
-            if (!smoothAnim) {
-                overridePendingTransition(0, 0);
-            }
+            applyTabTransition();
+        }
+    }
+
+    /** Hiệu ứng đổi tab theo cài đặt "smooth_anim": hiện dần (mượt) hoặc chuyển ngay. */
+    private void applyTabTransition() {
+        boolean smoothAnim = getSharedPreferences("melodyverse_settings", MODE_PRIVATE)
+                .getBoolean("smooth_anim", true);
+        if (smoothAnim) {
+            overridePendingTransition(R.anim.tab_fade_in, R.anim.tab_hold);
+        } else {
+            overridePendingTransition(0, 0);
+        }
+    }
+
+    /**
+     * Tab đã mở trước đó được đưa lại lên trên (REORDER_TO_FRONT): Android bỏ qua hiệu ứng đặt lúc startActivity
+     * và chạy hiệu ứng mặc định, nên phải đặt lại ở đây.
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null && intent.getBooleanExtra(EXTRA_TAB_SWITCH, false)) {
+            intent.removeExtra(EXTRA_TAB_SWITCH);
+            applyTabTransition();
         }
     }
 

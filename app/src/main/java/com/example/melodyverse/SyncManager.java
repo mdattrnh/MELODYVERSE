@@ -1080,7 +1080,11 @@ public class SyncManager {
         }
         executor.execute(() -> {
             try {
-                pushPendingBlocking();
+                try {
+                    pushPendingBlocking();
+                } catch (Exception e) {
+                    Log.w(TAG, "Đẩy thay đổi chờ thất bại (bỏ qua để vẫn tải dữ liệu quản trị): " + e.getMessage());
+                }
                 List<PostModel> posts = new ArrayList<>();
                 Map<String, PostModel> byId = new HashMap<>();
                 for (DocumentSnapshot d : await(fs.collection(C_POSTS)
@@ -1101,8 +1105,16 @@ public class SyncManager {
                 }
                 users.sort((a, b) -> a.getUsername().compareTo(b.getUsername()));
                 db.saveUsers(users);
-                List<ReportedPost> reports = loadReportsBlocking(byId);
-                main.post(() -> cb.onDone(Status.OK, posts, users, reports));
+                // Đọc reports cần quyền Admin (admins/{uid}); lỗi ở đây không được làm mất cả bài hát lẫn người dùng
+                List<ReportedPost> reports;
+                try {
+                    reports = loadReportsBlocking(byId);
+                } catch (Exception e) {
+                    Log.w(TAG, "Tải báo cáo vi phạm thất bại (thiếu quyền admins/{uid}?): " + e.getMessage());
+                    reports = null;
+                }
+                List<ReportedPost> finalReports = reports;
+                main.post(() -> cb.onDone(Status.OK, posts, users, finalReports));
             } catch (Exception e) {
                 Log.w(TAG, "Tải dữ liệu quản trị thất bại: " + e.getMessage());
                 main.post(() -> cb.onDone(Status.ERROR, null, null, null));

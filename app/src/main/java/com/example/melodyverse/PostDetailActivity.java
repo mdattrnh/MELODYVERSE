@@ -82,6 +82,11 @@ public class PostDetailActivity extends BaseActivity {
 
         dbHelper = DatabaseHelper.getInstance(this);
 
+        // Quản trị viên mở xem bài từ trang Admin: không hiện thanh điều hướng của thành viên
+        if (bottomNavigationView != null && dbHelper.getUser(SessionManager.getCurrentUsername(this)).isAdmin()) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+
         // Lấy ID bài viết từ Intent
         postId = getIntent().getStringExtra(EXTRA_POST_ID);
         if (postId == null || postId.isEmpty()) {

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@drawable/bg_screen_gradient">
+    android:background="@color/colorBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,7 +11,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Top Header Bar -->
+        <!-- Header: tiêu đề + trạng thái hệ thống + đăng xuất -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -32,123 +31,105 @@
                     android:text="Quản trị"
                     android:textColor="@color/colorTextPrimary"
                     android:textStyle="bold"
-                    android:textSize="28sp"
-                    android:letterSpacing="-0.02" />
+                    android:textSize="22sp" />
 
                 <TextView
+                    android:id="@+id/tv_admin_stat_system"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kiểm duyệt nội dung và người dùng"
+                    android:text="●  Đang kiểm tra"
                     android:textColor="@color/colorTextSecondary"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:layout_marginTop="2dp" />
             </LinearLayout>
 
-            <!-- Cục Đăng Xuất Admin Nổi Bật -->
-            <androidx.appcompat.widget.AppCompatButton
+            <TextView
                 android:id="@+id/btn_admin_top_logout"
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
+                android:layout_height="34dp"
                 android:text="Đăng xuất"
-                android:textAllCaps="false"
-                android:minWidth="0dp"
-                android:textColor="@color/colorDanger"
+                android:textColor="@color/colorTextPrimary"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                android:background="@drawable/bg_button_danger_soft"
-                android:drawableStart="@drawable/ic_logout"
-                android:drawableTint="@color/colorDanger"
-                android:drawablePadding="6dp"
-                android:paddingStart="12dp"
+                android:gravity="center"
+                android:background="@drawable/bg_admin_btn_outline"
+                android:paddingStart="14dp"
                 android:paddingEnd="14dp" />
         </LinearLayout>
 
-        <!-- Stats Grid (2x2) -->
+        <!-- Thống kê: 3 cột trong một thẻ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="10dp">
+            android:background="@drawable/bg_admin_card"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:layout_marginBottom="16dp">
 
-            <!-- Card 1: Posts -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:background="@drawable/bg_card_gradient"
-                android:padding="16dp"
-                android:layout_marginEnd="6dp">
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tv_admin_stat_posts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold"
+                    android:textSize="20sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Bài đăng"
                     android:textColor="@color/colorTextSecondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/tv_admin_stat_posts"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="4"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textStyle="bold"
-                    android:textSize="24sp"
-                    android:layout_marginTop="4dp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
-            <!-- Card 2: Users -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/colorLine" />
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:background="@drawable/bg_card_gradient"
-                android:padding="16dp"
-                android:layout_marginStart="6dp">
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tv_admin_stat_users"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold"
+                    android:textSize="20sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Người dùng"
                     android:textColor="@color/colorTextSecondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/tv_admin_stat_users"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="3"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textStyle="bold"
-                    android:textSize="24sp"
-                    android:layout_marginTop="4dp" />
+                    android:textSize="12sp" />
             </LinearLayout>
-        </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/colorLine" />
 
-            <!-- Card 3: Bài viết vi phạm cần xử lý -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:background="@drawable/bg_card_gradient"
-                android:padding="16dp"
-                android:layout_marginEnd="6dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Vi phạm cần xử lý"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="13sp" />
+                android:gravity="center_horizontal">
 
                 <TextView
                     android:id="@+id/tv_admin_stat_reports"
@@ -157,47 +138,25 @@
                     android:text="0"
                     android:textColor="@color/colorDanger"
                     android:textStyle="bold"
-                    android:textSize="24sp"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Card 4: Server Status -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@drawable/bg_card_gradient"
-                android:padding="16dp"
-                android:layout_marginStart="6dp">
+                    android:textSize="20sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hệ thống"
+                    android:text="Vi phạm"
                     android:textColor="@color/colorTextSecondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/tv_admin_stat_system"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="●  Đang kiểm tra"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textStyle="bold"
-                    android:textSize="17sp"
-                    android:layout_marginTop="6dp" />
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Tab Switcher (3 khu vực: Bài hát, Người dùng, Bài viết vi phạm) -->
+        <!-- Tabs -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="44dp"
+            android:layout_height="40dp"
             android:orientation="horizontal"
-            android:background="@drawable/bg_segmented"
-            android:padding="4dp"
-            android:layout_marginBottom="14dp">
+            android:background="@drawable/bg_admin_segmented"
+            android:padding="3dp"
+            android:layout_marginBottom="12dp">
 
             <TextView
                 android:id="@+id/tab_admin_posts"
@@ -205,11 +164,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Bài hát"
-                android:textColor="@color/white"
+                android:textColor="@color/colorTextPrimary"
                 android:textStyle="bold"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:gravity="center"
-                android:background="@drawable/bg_chip_selected" />
+                android:background="@drawable/bg_admin_tab_selected" />
 
             <TextView
                 android:id="@+id/tab_admin_users"
@@ -218,9 +177,8 @@
                 android:layout_weight="1"
                 android:text="Người dùng"
                 android:textColor="@color/colorTextSecondary"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackground" />
+                android:textSize="13sp"
+                android:gravity="center" />
 
             <TextView
                 android:id="@+id/tab_admin_reports"
@@ -229,12 +187,10 @@
                 android:layout_weight="1"
                 android:text="Vi phạm"
                 android:textColor="@color/colorTextSecondary"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackground" />
+                android:textSize="13sp"
+                android:gravity="center" />
         </LinearLayout>
 
-        <!-- Empty indicator -->
         <TextView
             android:id="@+id/tv_admin_empty"
             android:layout_width="match_parent"
@@ -246,14 +202,12 @@
             android:padding="20dp"
             android:visibility="gone" />
 
-        <!-- Recycler View for Posts -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_admin_posts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false" />
 
-        <!-- Users Management Container with Search Bar -->
         <LinearLayout
             android:id="@+id/layout_admin_users_container"
             android:layout_width="match_parent"
@@ -264,22 +218,21 @@
             <EditText
                 android:id="@+id/et_admin_search_users"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_search_pill"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_admin_search"
                 android:hint="Tìm theo tên hoặc username"
                 android:textColorHint="@color/colorInputHint"
                 android:textColor="@color/colorTextPrimary"
                 android:textSize="13sp"
                 android:drawableStart="@drawable/ic_search"
                 android:drawablePadding="10dp"
-                android:drawableTint="@color/colorPrimary"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
+                android:drawableTint="@color/colorTextMuted"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:singleLine="true"
                 android:imeOptions="actionSearch"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Recycler View for Users -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_admin_users"
                 android:layout_width="match_parent"
@@ -296,4 +249,4 @@
             android:visibility="gone" />
 
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

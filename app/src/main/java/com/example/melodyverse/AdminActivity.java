@@ -89,6 +89,13 @@ public class AdminActivity extends BaseActivity {
 
         AdminPostAdapter.OnAdminPostActionListener postActions = new AdminPostAdapter.OnAdminPostActionListener() {
             @Override
+            public void onViewPost(PostModel post) {
+                android.content.Intent intent = new android.content.Intent(AdminActivity.this, PostDetailActivity.class);
+                intent.putExtra(PostDetailActivity.EXTRA_POST_ID, post.getId());
+                startActivity(intent);
+            }
+
+            @Override
             public void onPlayPost(PostModel post) {
                 isMiniPlayerDismissed = false;
                 MusicService.play(AdminActivity.this, post);
@@ -192,6 +199,11 @@ public class AdminActivity extends BaseActivity {
             setSystemStatus(status);
             if (status == SyncManager.Status.OK) {
                 showDashboard(posts, users, reports);
+                if (reports == null) {
+                    Toast.makeText(this, "Không tải được bài vi phạm — tài khoản chưa có quyền admins/{uid} trên Firestore", Toast.LENGTH_LONG).show();
+                }
+            } else if (status == SyncManager.Status.ERROR) {
+                Toast.makeText(this, "Lỗi tải dữ liệu quản trị — kiểm tra Firestore Rules / kết nối Firebase (xem Logcat)", Toast.LENGTH_LONG).show();
             } else if (status == SyncManager.Status.OFFLINE) {
                 Toast.makeText(this, "📴 Đang offline — hiển thị dữ liệu đã lưu trên máy", Toast.LENGTH_SHORT).show();
             }
@@ -284,8 +296,7 @@ public class AdminActivity extends BaseActivity {
         } else {
             for (UserModel u : allUserList) {
                 if (u.getUsername().toLowerCase().contains(q) ||
-                    u.getFullName().toLowerCase().contains(q) ||
-                    u.getRole().toLowerCase().contains(q)) {
+                    u.getFullName().toLowerCase().contains(q)) {
                     userList.add(u);
                 }
             }
@@ -303,8 +314,8 @@ public class AdminActivity extends BaseActivity {
     private void selectTab(TextView selected) {
         for (TextView tab : new TextView[]{tabPosts, tabUsers, tabReports}) {
             if (tab == selected) {
-                tab.setBackgroundResource(R.drawable.bg_chip_selected);
-                tab.setTextColor(ContextCompat.getColor(this, R.color.white));
+                tab.setBackgroundResource(R.drawable.bg_admin_tab_selected);
+                tab.setTextColor(ContextCompat.getColor(this, R.color.colorTextPrimary));
                 tab.setTypeface(null, android.graphics.Typeface.BOLD);
             } else {
                 tab.setBackground(null);
@@ -439,6 +450,7 @@ public class AdminActivity extends BaseActivity {
     // --- Adapter cho Quản lý bài hát & Bài viết vi phạm ---
     public static class AdminPostAdapter extends RecyclerView.Adapter<AdminPostAdapter.ViewHolder> {
         public interface OnAdminPostActionListener {
+            void onViewPost(PostModel post);
             void onPlayPost(PostModel post);
             void onToggleHidden(PostModel post);
             void onDismissReports(PostModel post);
@@ -472,19 +484,18 @@ public class AdminActivity extends BaseActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             PostModel post = list.get(position);
             holder.tvAuthor.setText("@" + post.getAuthorUsername() + " • " + DatabaseHelper.formatTimeAgo(post.getCreatedAt()));
-            holder.tvGenre.setText(post.getGenre());
             holder.tvTitle.setText(post.getSongTitle());
             holder.tvArtist.setText(post.getArtistName());
             holder.tvCaption.setText(post.getCaption());
-            holder.tvStats.setText(post.getLikeCount() + " lượt thích • " + post.getCommentCount() + " bình luận");
+            holder.tvCaption.setVisibility(post.getCaption() == null || post.getCaption().trim().isEmpty() ? View.GONE : View.VISIBLE);
 
             // Trạng thái kiểm duyệt
             SyncManager.ReportedPost report = reportInfo.get(post.getId());
             String moderation = null;
             if (post.isHiddenByAdmin()) {
-                moderation = "🚫 Đang bị ẩn khỏi cộng đồng";
+                moderation = "Đang bị ẩn khỏi cộng đồng";
             } else if (report != null) {
-                moderation = "⚠ " + report.reportCount + " lượt báo cáo vi phạm"
+                moderation = report.reportCount + " lượt báo cáo vi phạm"
                         + (report.reasons.isEmpty() ? "" : " • " + report.reasons);
             }
             holder.tvModeration.setVisibility(moderation != null ? View.VISIBLE : View.GONE);
@@ -493,6 +504,7 @@ public class AdminActivity extends BaseActivity {
             holder.btnHide.setText(post.isHiddenByAdmin() ? "Hiện lại" : "Ẩn bài");
             holder.btnDismiss.setVisibility(reportMode ? View.VISIBLE : View.GONE);
 
+            holder.btnView.setOnClickListener(v -> listener.onViewPost(post));
             holder.btnPlay.setOnClickListener(v -> listener.onPlayPost(post));
             holder.btnHide.setOnClickListener(v -> listener.onToggleHidden(post));
             holder.btnDismiss.setOnClickListener(v -> listener.onDismissReports(post));
@@ -505,18 +517,17 @@ public class AdminActivity extends BaseActivity {
         }
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView tvAuthor, tvGenre, tvTitle, tvArtist, tvCaption, tvModeration, tvStats;
-            final TextView btnPlay, btnHide, btnDismiss, btnDelete;
+            final TextView tvAuthor, tvTitle, tvArtist, tvCaption, tvModeration;
+            final TextView btnView, btnPlay, btnHide, btnDismiss, btnDelete;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 tvAuthor = itemView.findViewById(R.id.tv_admin_post_author);
-                tvGenre = itemView.findViewById(R.id.tv_admin_post_genre);
                 tvTitle = itemView.findViewById(R.id.tv_admin_post_title);
                 tvArtist = itemView.findViewById(R.id.tv_admin_post_artist);
                 tvCaption = itemView.findViewById(R.id.tv_admin_post_caption);
                 tvModeration = itemView.findViewById(R.id.tv_admin_post_moderation);
-                tvStats = itemView.findViewById(R.id.tv_admin_post_stats);
+                btnView = itemView.findViewById(R.id.btn_admin_view_post);
                 btnPlay = itemView.findViewById(R.id.btn_admin_play_post);
                 btnHide = itemView.findViewById(R.id.btn_admin_hide_post);
                 btnDismiss = itemView.findViewById(R.id.btn_admin_dismiss_report);
@@ -553,21 +564,17 @@ public class AdminActivity extends BaseActivity {
             UserModel user = list.get(position);
             holder.tvFullName.setText(user.getFullName());
             holder.tvUsername.setText("@" + user.getUsername());
-            holder.tvRole.setText(user.getRole());
-            holder.tvRole.setTextColor(ContextCompat.getColor(context, R.color.colorNeonCyan));
-            holder.tvBio.setText(user.getBio());
-            holder.tvStats.setText(user.getPostsCount() + " bài chia sẻ • " + user.getFollowersCount() + " theo dõi");
 
             if (user.isLocked()) {
-                holder.tvStatus.setText("Bị khóa ⚠️");
-                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.colorNeonPink));
+                holder.tvStatus.setText("Đã khóa");
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.colorDanger));
                 holder.btnToggleLock.setText("Mở khóa");
-                holder.btnToggleLock.setTextColor(ContextCompat.getColor(context, R.color.colorNeonCyan));
+                holder.btnToggleLock.setBackgroundResource(R.drawable.bg_admin_btn_green);
             } else {
-                holder.tvStatus.setText("Hoạt động ✓");
-                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.colorNeonCyan));
-                holder.btnToggleLock.setText("Khóa TK");
-                holder.btnToggleLock.setTextColor(ContextCompat.getColor(context, R.color.colorNeonPink));
+                holder.tvStatus.setText("Đang hoạt động");
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.colorTextSecondary));
+                holder.btnToggleLock.setText("Khóa");
+                holder.btnToggleLock.setBackgroundResource(R.drawable.bg_admin_btn_red);
             }
             holder.btnToggleLock.setOnClickListener(v -> listener.onToggleLock(user));
         }
@@ -578,16 +585,13 @@ public class AdminActivity extends BaseActivity {
         }
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView tvFullName, tvUsername, tvRole, tvStatus, tvBio, tvStats, btnToggleLock;
+            final TextView tvFullName, tvUsername, tvStatus, btnToggleLock;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 tvFullName = itemView.findViewById(R.id.tv_admin_user_fullname);
                 tvUsername = itemView.findViewById(R.id.tv_admin_user_username);
-                tvRole = itemView.findViewById(R.id.tv_admin_user_role);
                 tvStatus = itemView.findViewById(R.id.tv_admin_user_status);
-                tvBio = itemView.findViewById(R.id.tv_admin_user_bio);
-                tvStats = itemView.findViewById(R.id.tv_admin_user_stats);
                 btnToggleLock = itemView.findViewById(R.id.btn_admin_toggle_lock);
             }
         }
