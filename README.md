@@ -63,8 +63,9 @@
 - **Offline:** xem dữ liệu đã lưu, thao tác chờ đồng bộ (🕒); bấm nghe nhạc trực tuyến khi mất mạng → *"Bạn đang ngoại tuyến. Vui lòng kết nối Internet để nghe bài hát trực tuyến này"*.
 
 ### 🛡️ Quản trị viên (tài khoản riêng, không dùng chung với thành viên)
-- Thống kê: **Bài đăng, Người dùng, Vi phạm cần xử lý, trạng thái Hệ thống**.
-- 3 khu vực: **Bài hát** (nghe thử, ẩn / hiện lại, xóa) · **Người dùng** (tìm kiếm, khóa / mở khóa) · **Vi phạm** (bài bị báo cáo kèm số lượt và lý do → Ẩn bài / Xóa / Bỏ qua).
+- Thống kê: **Bài đăng, Người dùng, Vi phạm cần xử lý**, kèm trạng thái kết nối Hệ thống.
+- 3 khu vực: **Bài hát** (xem bài đăng, nghe thử, ẩn / hiện lại, xóa) · **Người dùng** (tìm theo tên / username, khóa / mở khóa) · **Vi phạm** (bài bị báo cáo kèm số lượt và lý do → Ẩn bài / Xóa / Bỏ qua).
+- Nền tảng chỉ chia 2 loại tài khoản: **Thành viên** và **Quản trị viên**. Quyền quản trị trên Firestore = có document `admins/{uid}` (uid lấy ở Authentication → Users).
 
 ---
 
@@ -132,6 +133,8 @@ Màn Đăng nhập có nút tự điền nhanh hai tài khoản này. Các hồ 
 |---|---|
 | Đăng nhập báo không kết nối được Firebase | Kiểm tra mạng của máy ảo (mở Chrome thử) |
 | Báo cáo / thông báo không hoạt động | Chưa Publish `firestore.rules` mới |
+| Trang Quản trị báo *Lỗi máy chủ* / Vi phạm luôn = 0 | Thiếu document `admins/{uid}` của tài khoản admin: Firestore → collection `admins` → Document ID = User UID của `admin@melodyverse.vn` (Authentication → Users), field `username` = `admin` |
+| Gõ bàn phím máy tính vào máy ảo bị mất chữ | Tắt Unikey / EVKey (chuyển sang chế độ E) khi gõ vào máy ảo |
 | Máy ảo màn hình đen | Device Manager → Edit → *Graphics: Software* |
 | Bấm tab dưới không ăn | Bàn phím đang che thanh điều hướng → bấm Back ẩn bàn phím |
 | "Thiết bị chưa hỗ trợ đăng nhập Google" | Máy thiếu / cũ Google Play services |
