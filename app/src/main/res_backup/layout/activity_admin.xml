@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_screen_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Header Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TRUNG TÂM QUẢN TRỊ"
+                    android:textColor="@color/colorNeonOrange"
+                    android:textStyle="bold"
+                    android:textSize="17sp"
+                    android:letterSpacing="0.04" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MelodyVerse Administration &amp; Moderation"
+                    android:textColor="@color/colorTextSecondary"
+                    android:textSize="11.5sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Cục Đăng Xuất Admin Nổi Bật -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_admin_top_logout"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Đăng xuất"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_gradient_button"
+                android:drawableStart="@drawable/ic_logout"
+                android:drawableTint="@color/white"
+                android:drawablePadding="6dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:elevation="2dp" />
+        </LinearLayout>
+
+        <!-- Stats Grid (2x2) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+
+            <!-- Card 1: Posts -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_gradient"
+                android:padding="14dp"
+                android:elevation="3dp"
+                android:layout_marginEnd="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TỔNG BÀI ĐĂNG"
+                    android:textColor="@color/colorNeonCyan"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_admin_stat_posts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Card 2: Users -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_gradient"
+                android:padding="14dp"
+                android:elevation="3dp"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NGƯỜI DÙNG"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_admin_stat_users"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <!-- Card 3: Comments -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_gradient"
+                android:padding="14dp"
+                android:elevation="3dp"
+                android:layout_marginEnd="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="BÌNH LUẬN"
+                    android:textColor="@color/colorNeonPink"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_admin_stat_comments"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Card 4: Server Status -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_gradient"
+                android:padding="14dp"
+                android:elevation="3dp"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TRẠNG THÁI CSDL"
+                    android:textColor="#34D399"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hoạt động tốt"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Quick Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="18dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_admin_add_post"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="+ Thêm bài hát"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:background="@drawable/bg_gradient_button"
+                android:layout_marginEnd="6dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_admin_reset_db"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Khôi phục CSDL"
+                android:textColor="@color/colorNeonPink"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:background="@drawable/bg_tag_chip"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <!-- Tab Switcher (3 Tabs: Posts, Users, Admin Profile) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_card_gradient"
+            android:padding="4dp"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:id="@+id/tab_admin_posts"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Quản Lý Bài Hát"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:background="@drawable/bg_chip_selected" />
+
+            <TextView
+                android:id="@+id/tab_admin_users"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Người Dùng"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackground" />
+
+            <TextView
+                android:id="@+id/tab_admin_profile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Hồ Sơ Admin"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackground" />
+        </LinearLayout>
+
+        <!-- Empty indicator -->
+        <TextView
+            android:id="@+id/tv_admin_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Không có dữ liệu hiển thị"
+            android:textColor="@color/colorTextMuted"
+            android:textSize="13sp"
+            android:textAlignment="center"
+            android:padding="20dp"
+            android:visibility="gone" />
+
+        <!-- Recycler View for Posts -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_admin_posts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+        <!-- Users Management Container with Search Bar -->
+        <LinearLayout
+            android:id="@+id/layout_admin_users_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/et_admin_search_users"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_login_input"
+                android:hint="Tìm kiếm theo username, họ tên..."
+                android:textColorHint="@color/colorInputHint"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="13sp"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="10dp"
+                android:drawableTint="@color/colorPrimary"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:imeOptions="actionSearch"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Recycler View for Users -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_admin_users"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+        </LinearLayout>
+
+        <!-- Layout for Admin Profile & System Privileges -->
+        <LinearLayout
+            android:id="@+id/layout_admin_profile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Admin Profile Header Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_gradient"
+                android:padding="20dp"
+                android:gravity="center_horizontal"
+                android:layout_marginBottom="16dp">
+
+                <FrameLayout
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:background="@drawable/bg_story_ring"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_avatar_circle"
+                        android:src="@drawable/ic_person"
+                        android:padding="16dp"
+                        app:tint="@color/colorNeonOrange" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ban Quản Trị MelodyVerse"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@admin"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ROOT ADMINISTRATOR"
+                    android:textColor="@color/colorNeonOrange"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_chip_admin_demo"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Tài khoản điều hành cấp cao nhất của hệ thống MelodyVerse. Toàn quyền quản trị nội dung, âm nhạc, kiểm duyệt và phân quyền tài khoản thành viên."
+                    android:textColor="@color/colorTextSecondary"
+                    android:textSize="12.5sp"
+                    android:textAlignment="center"
+                    android:lineSpacingExtra="3dp"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+
+            <!-- Admin System Privileges -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_gradient"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DANH SÁCH QUYỀN HẠN HỆ THỐNG"
+                    android:textColor="@color/colorNeonCyan"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓  Kiểm duyệt và xóa bài đăng vi phạm"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓  Phân quyền và thăng cấp người dùng (Admin / User)"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓  Đăng tải ca khúc độc quyền từ Ban Quản Trị"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓  Sao lưu và khôi phục cơ sở dữ liệu SQLite"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓  Kiểm soát luồng phát nền MusicService"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Admin Actions -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_admin_logout"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:text="Đăng Xuất Tài Khoản Quản Trị"
+                android:textColor="@color/colorNeonPink"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:background="@drawable/bg_input_field"
+                android:layout_marginBottom="12dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_admin_profile_reset_db"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:text="Khôi Phục CSDL Về Trạng Thái Gốc"
+                android:textColor="@color/colorTextSecondary"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:background="@drawable/bg_tag_chip"
+                android:layout_marginBottom="24dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card_gradient"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <!-- Top info row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/tv_admin_post_author"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@minhthu"
+            android:textColor="@color/colorTextMuted"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tv_admin_post_genre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="V-POP"
+            android:textColor="@color/colorAccent"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_tag_chip"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp" />
+    </LinearLayout>
+
+    <!-- Song title and artist -->
+    <TextView
+        android:id="@+id/tv_admin_post_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="50 Cuộc Gọi Nhỡ"
+        android:textColor="@color/colorTextPrimary"
+        android:textStyle="bold"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tv_admin_post_artist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tinh Hà"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="13sp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Caption snippet -->
+    <TextView
+        android:id="@+id/tv_admin_post_caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nội dung bài viết..."
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="14sp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Trạng thái kiểm duyệt: số lượt báo cáo + lý do, hoặc "Đang bị ẩn" -->
+    <TextView
+        android:id="@+id/tv_admin_post_moderation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚠ 2 lượt báo cáo • Spam"
+        android:textColor="@color/colorDanger"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorLine"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:id="@+id/tv_admin_post_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="512 lượt thích • 64 bình luận"
+        android:textColor="@color/colorTextMuted"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Action Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical|end">
+
+        <TextView
+            android:id="@+id/btn_admin_play_post"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:text="Nghe thử"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_button_tonal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Bỏ qua báo cáo (chỉ ở tab Bài viết vi phạm) -->
+        <TextView
+            android:id="@+id/btn_admin_dismiss_report"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:text="Bỏ qua"
+            android:textColor="@color/colorTextPrimary"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_button_secondary"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone" />
+
+        <!-- Ẩn bài / Hiện lại -->
+        <TextView
+            android:id="@+id/btn_admin_hide_post"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:text="Ẩn bài"
+            android:textColor="@color/colorGold"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_button_secondary"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btn_admin_delete_post"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:text="Xóa"
+            android:textColor="@color/colorDanger"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_button_danger_soft"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
+    </LinearLayout>
+
+</LinearLayout>

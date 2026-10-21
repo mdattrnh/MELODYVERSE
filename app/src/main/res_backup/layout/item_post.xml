@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="14dp"
+    android:layout_marginEnd="14dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_card_gradient"
+    android:elevation="3dp"
+    android:padding="16dp">
+
+    <!-- Header: Avatar, Name, Username, Time, More btn -->
+    <ImageView
+        android:id="@+id/iv_post_avatar"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:src="@drawable/ic_person"
+        android:padding="8dp"
+        app:tint="@color/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintTop_toTopOf="@id/iv_post_avatar"
+        app:layout_constraintBottom_toBottomOf="@id/iv_post_avatar"
+        app:layout_constraintStart_toEndOf="@id/iv_post_avatar"
+        app:layout_constraintEnd_toStartOf="@id/iv_post_more">
+        
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tv_post_author"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ngọc Thành"
+                android:textColor="@color/colorTextPrimary"
+                android:textStyle="bold"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tv_post_username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • @ngocthanh"
+                android:textColor="@color/colorTextMuted"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+            
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="2dp">
+            <TextView
+                android:id="@+id/tv_post_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2 giờ trước"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • "
+                android:textColor="@color/colorTextMuted"
+                android:textSize="12sp" />
+            <ImageView
+                android:id="@+id/iv_post_privacy_icon"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_public"
+                app:tint="@color/colorTextMuted" />
+
+            <TextView
+                android:id="@+id/tv_post_privacy_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Công khai"
+                android:textColor="@color/colorTextMuted"
+                android:textSize="11sp"
+                android:layout_marginStart="3dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_post_more"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_more"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="4dp"
+        app:tint="@color/colorTextSecondary"
+        app:layout_constraintTop_toTopOf="@id/iv_post_avatar"
+        app:layout_constraintBottom_toBottomOf="@id/iv_post_avatar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Caption -->
+    <TextView
+        android:id="@+id/tv_post_caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Chill cùng Tinh Hà nào.\nBài này nghe là thấy cả vũ trụ luôn!"
+        android:textColor="@color/colorTextPrimary"
+        android:lineSpacingExtra="4dp"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/iv_post_avatar" />
+
+    <!-- Music Card with Vinyl look & Animated Sound Waves -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_music_card"
+        android:layout_width="match_parent"
+        android:layout_height="82dp"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_music_card"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_post_caption">
+        
+        <!-- Vinyl Record / Music Art -->
+        <FrameLayout
+            android:id="@+id/frame_music_art"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_record_vinyl"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+            
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_music_note"
+                android:layout_gravity="center"
+                app:tint="@color/white" />
+        </FrameLayout>
+            
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/frame_music_art"
+            app:layout_constraintEnd_toStartOf="@id/layout_eq_wave">
+
+            <TextView
+                android:id="@+id/tv_music_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50 Cuộc Gọi Nhỡ"
+                android:textColor="@color/colorTextPrimary"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tv_music_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Tinh Hà Say Hi • Tập 8"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12.5sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <!-- Audio Quality & Listen Count Badge -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lossless • 320kbps"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:maxLines="1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" • 1.4K lượt nghe"
+                    android:textColor="@color/colorTextMuted"
+                    android:textSize="10.5sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Equalizer Sound Wave Visualizer (Visible when playing) -->
+        <LinearLayout
+            android:id="@+id/layout_eq_wave"
+            android:layout_width="wrap_content"
+            android:layout_height="22dp"
+            android:orientation="horizontal"
+            android:gravity="bottom"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/iv_music_play">
+
+            <View
+                android:id="@+id/eq_bar_1"
+                android:layout_width="3.5dp"
+                android:layout_height="8dp"
+                android:background="@drawable/bg_eq_bar"
+                android:layout_marginEnd="3dp" />
+
+            <View
+                android:id="@+id/eq_bar_2"
+                android:layout_width="3.5dp"
+                android:layout_height="18dp"
+                android:background="@drawable/bg_eq_bar"
+                android:layout_marginEnd="3dp" />
+
+            <View
+                android:id="@+id/eq_bar_3"
+                android:layout_width="3.5dp"
+                android:layout_height="12dp"
+                android:background="@drawable/bg_eq_bar"
+                android:layout_marginEnd="3dp" />
+
+            <View
+                android:id="@+id/eq_bar_4"
+                android:layout_width="3.5dp"
+                android:layout_height="16dp"
+                android:background="@drawable/bg_eq_bar" />
+        </LinearLayout>
+        
+        <!-- Play / Pause Button with circle ripple -->
+        <ImageView
+            android:id="@+id/iv_music_play"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_play"
+            android:background="@drawable/bg_play_button"
+            android:padding="10dp"
+            app:tint="@color/white"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Hashtags and Genre -->
+    <LinearLayout
+        android:id="@+id/layout_hashtags"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@id/layout_music_card">
+
+        <TextView
+            android:id="@+id/tv_genre_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tag_chip"
+            android:text="V-POP"
+            android:textColor="@color/colorNeonPink"
+            android:textStyle="bold"
+            android:textSize="11sp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginEnd="8dp" />
+        
+        <TextView
+            android:id="@+id/tv_hashtag1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tag_chip"
+            android:text="#TinhHaSayHi"
+            android:textColor="@color/colorAccent"
+            android:textSize="12sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_marginEnd="8dp" />
+            
+        <TextView
+            android:id="@+id/tv_hashtag2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tag_chip"
+            android:text="#NhacViet"
+            android:textColor="@color/colorNeonCyan"
+            android:textSize="12sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp" />
+    </LinearLayout>
+
+    <!-- Divider Line -->
+    <View
+        android:id="@+id/view_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorSurfaceBorder"
+        android:layout_marginTop="14dp"
+        app:layout_constraintTop_toBottomOf="@id/layout_hashtags" />
+
+    <!-- Interactive Actions Bar (Like, Comment, Share, Bookmark) -->
+    <LinearLayout
+        android:id="@+id/layout_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@id/view_divider">
+        
+        <!-- Like Action -->
+        <LinearLayout
+            android:id="@+id/btn_like_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:paddingEnd="12dp">
+            
+            <ImageView
+                android:id="@+id/iv_post_like"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_heart"
+                app:tint="@color/colorTextSecondary" />
+
+            <TextView
+                android:id="@+id/tv_like_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="248"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+            
+        <!-- Comment Action -->
+        <LinearLayout
+            android:id="@+id/btn_comment_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="12dp"
+            android:layout_marginStart="8dp">
+
+            <ImageView
+                android:id="@+id/iv_post_comment"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_comment"
+                app:tint="@color/colorTextSecondary" />
+
+            <TextView
+                android:id="@+id/tv_comment_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="32"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+            
+        <!-- Share Action -->
+        <LinearLayout
+            android:id="@+id/btn_share_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="12dp"
+            android:layout_marginStart="8dp">
+
+            <ImageView
+                android:id="@+id/iv_post_share"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_share"
+                app:tint="@color/colorTextSecondary" />
+
+            <TextView
+                android:id="@+id/tv_share_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+            
+        <!-- Bookmark Action -->
+        <ImageView
+            android:id="@+id/iv_post_bookmark"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_bookmark"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="2dp"
+            app:tint="@color/colorTextSecondary" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,595 @@
+package com.example.melodyverse;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Trang Quản trị viên — tài khoản quản trị riêng, chỉ tập trung vào nghiệp vụ kiểm duyệt với 3 khu vực:
+ * Quản lý bài hát, Quản lý người dùng và Quản lý bài viết vi phạm (bài bị thành viên báo cáo).
+ */
+public class AdminActivity extends BaseActivity {
+
+    private TextView tvStatPosts, tvStatUsers, tvStatReports, tvStatSystem;
+    private TextView tabPosts, tabUsers, tabReports, tvEmpty;
+    private RecyclerView rvPosts, rvUsers, rvReports;
+    private View layoutAdminUsersContainer;
+    private EditText etAdminSearchUsers;
+
+    private DatabaseHelper dbHelper;
+    private SyncManager sync;
+    private AdminPostAdapter postAdapter, reportAdapter;
+    private AdminUserAdapter userAdapter;
+    private final List<PostModel> postList = new ArrayList<>();
+    private final List<PostModel> reportList = new ArrayList<>();
+    /** postId → thông tin báo cáo vi phạm của bài. */
+    private final Map<String, SyncManager.ReportedPost> reportInfo = new HashMap<>();
+    private final List<UserModel> userList = new ArrayList<>();
+    private final List<UserModel> allUserList = new ArrayList<>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Bơm giao diện Admin vào FrameLayout của BaseActivity
+        setContentLayout(R.layout.activity_admin);
+
+        // Chỉ tài khoản có vai trò Quản trị viên trong CSDL mới được vào trang này
+        dbHelper = DatabaseHelper.getInstance(this);
+        String sessionUser = SessionManager.getCurrentUsername(this);
+        if (sessionUser == null || !dbHelper.getUser(sessionUser).isAdmin()) {
+            if (sessionUser != null) {
+                Toast.makeText(this, "Bạn không có quyền truy cập Trung tâm Quản trị!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            return;
+        }
+
+        // Ẩn hoàn toàn thanh điều hướng của thành viên (Admin chỉ có tính năng quản trị chuyên biệt)
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+
+        // Ẩn thanh mini player trong Admin từ đầu, chỉ hiện khi Admin bấm nghe thử để kiểm duyệt
+        if (miniPlayerContainer != null && !MusicService.isPlaying) {
+            miniPlayerContainer.setVisibility(View.GONE);
+        }
+
+        sync = SyncManager.get(this);
+
+        tvStatPosts = findViewById(R.id.tv_admin_stat_posts);
+        tvStatUsers = findViewById(R.id.tv_admin_stat_users);
+        tvStatReports = findViewById(R.id.tv_admin_stat_reports);
+        tvStatSystem = findViewById(R.id.tv_admin_stat_system);
+
+        tabPosts = findViewById(R.id.tab_admin_posts);
+        tabUsers = findViewById(R.id.tab_admin_users);
+        tabReports = findViewById(R.id.tab_admin_reports);
+        tvEmpty = findViewById(R.id.tv_admin_empty);
+
+        rvPosts = findViewById(R.id.rv_admin_posts);
+        rvUsers = findViewById(R.id.rv_admin_users);
+        rvReports = findViewById(R.id.rv_admin_reports);
+        layoutAdminUsersContainer = findViewById(R.id.layout_admin_users_container);
+        etAdminSearchUsers = findViewById(R.id.et_admin_search_users);
+
+        AdminPostAdapter.OnAdminPostActionListener postActions = new AdminPostAdapter.OnAdminPostActionListener() {
+            @Override
+            public void onPlayPost(PostModel post) {
+                isMiniPlayerDismissed = false;
+                MusicService.play(AdminActivity.this, post);
+                if (miniPlayerContainer != null) {
+                    miniPlayerContainer.setVisibility(View.VISIBLE);
+                }
+                if (!MusicService.isOfflineStream(AdminActivity.this, post)) {
+                    Toast.makeText(AdminActivity.this, "Đang phát kiểm duyệt: " + post.getSongTitle(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onToggleHidden(PostModel post) {
+                confirmToggleHidden(post);
+            }
+
+            @Override
+            public void onDismissReports(PostModel post) {
+                confirmDismissReports(post);
+            }
+
+            @Override
+            public void onDeletePost(PostModel post) {
+                showDeletePostConfirmDialog(post);
+            }
+        };
+
+        // Quản lý bài hát
+        rvPosts.setLayoutManager(new LinearLayoutManager(this));
+        postAdapter = new AdminPostAdapter(this, postList, reportInfo, false, postActions);
+        rvPosts.setAdapter(postAdapter);
+
+        // Quản lý bài viết vi phạm
+        rvReports.setLayoutManager(new LinearLayoutManager(this));
+        reportAdapter = new AdminPostAdapter(this, reportList, reportInfo, true, postActions);
+        rvReports.setAdapter(reportAdapter);
+
+        // Quản lý người dùng & thanh tìm kiếm
+        rvUsers.setLayoutManager(new LinearLayoutManager(this));
+        userAdapter = new AdminUserAdapter(this, userList, this::toggleUserLock);
+        rvUsers.setAdapter(userAdapter);
+
+        if (etAdminSearchUsers != null) {
+            etAdminSearchUsers.addTextChangedListener(new android.text.TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    filterUsers(s != null ? s.toString() : "");
+                }
+
+                @Override
+                public void afterTextChanged(android.text.Editable s) {}
+            });
+        }
+
+        View btnTopLogout = findViewById(R.id.btn_admin_top_logout);
+        if (btnTopLogout != null) {
+            btnTopLogout.setOnClickListener(v -> showAdminLogoutDialog());
+        }
+
+        setupTabs();
+        // Dữ liệu được tải ở onResume (mở màn hình và mỗi lần quay lại)
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+        if (miniPlayerContainer != null && !MusicService.isPlaying) {
+            miniPlayerContainer.setVisibility(View.GONE);
+        }
+        if (sync != null) loadDashboardData();
+    }
+
+    @Override
+    public void updateMiniPlayerUi() {
+        super.updateMiniPlayerUi();
+        // Trong trang Admin, chỉ hiện mini player nếu đang thực sự phát nhạc kiểm duyệt
+        if (miniPlayerContainer != null && !MusicService.isPlaying) {
+            miniPlayerContainer.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void onReconnectedRefresh() {
+        if (sync != null) loadDashboardData();
+    }
+
+    /** Hiển thị dữ liệu đã lưu trong SQLite, rồi tải số liệu toàn hệ thống + báo cáo vi phạm từ Firebase. */
+    private void loadDashboardData() {
+        if (postList.isEmpty() && allUserList.isEmpty()) {
+            showDashboard(dbHelper.getAllPosts(), dbHelper.getAllUsers(), null);
+        }
+        setSystemStatus(null);
+        sync.loadAdminData((status, posts, users, reports) -> {
+            if (isFinishing() || isDestroyed()) return;
+            setSystemStatus(status);
+            if (status == SyncManager.Status.OK) {
+                showDashboard(posts, users, reports);
+            } else if (status == SyncManager.Status.OFFLINE) {
+                Toast.makeText(this, "📴 Đang offline — hiển thị dữ liệu đã lưu trên máy", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /** Trạng thái hoạt động của hệ thống: kết nối được Firebase hay không. */
+    private void setSystemStatus(SyncManager.Status status) {
+        if (tvStatSystem == null) return;
+        String text;
+        int color;
+        if (status == null) {
+            text = "●  Đang kiểm tra";
+            color = R.color.colorTextSecondary;
+        } else if (status == SyncManager.Status.OK) {
+            text = "●  Hoạt động";
+            color = R.color.colorSuccess;
+        } else if (status == SyncManager.Status.OFFLINE) {
+            text = "●  Mất kết nối";
+            color = R.color.colorGold;
+        } else {
+            text = "●  Lỗi máy chủ";
+            color = R.color.colorDanger;
+        }
+        tvStatSystem.setText(text);
+        tvStatSystem.setTextColor(ContextCompat.getColor(this, color));
+    }
+
+    /**
+     * @param reports null = chưa tải được từ Firebase (giữ nguyên số liệu vi phạm đang hiển thị)
+     */
+    private void showDashboard(List<PostModel> posts, List<UserModel> users, List<SyncManager.ReportedPost> reports) {
+        // Thống kê người dùng: chỉ đếm thành viên (không tính tài khoản quản trị)
+        List<UserModel> members = new ArrayList<>();
+        int lockedCount = 0;
+        for (UserModel u : users) {
+            if (u.isAdmin()) continue;
+            members.add(u);
+            if (u.isLocked()) lockedCount++;
+        }
+
+        if (tvStatPosts != null) tvStatPosts.setText(String.valueOf(posts.size()));
+        if (tvStatUsers != null) {
+            tvStatUsers.setText(lockedCount > 0 ? members.size() + " (" + lockedCount + " khóa)" : String.valueOf(members.size()));
+        }
+
+        postList.clear();
+        postList.addAll(posts);
+
+        if (reports != null) {
+            reportInfo.clear();
+            reportList.clear();
+            for (SyncManager.ReportedPost r : reports) {
+                reportInfo.put(r.post.getId(), r);
+                reportList.add(r.post);
+            }
+            if (tvStatReports != null) tvStatReports.setText(String.valueOf(reportList.size()));
+        }
+        postAdapter.notifyDataSetChanged();
+        reportAdapter.notifyDataSetChanged();
+
+        allUserList.clear();
+        allUserList.addAll(members);
+        String currentQuery = etAdminSearchUsers != null ? etAdminSearchUsers.getText().toString() : "";
+        filterUsers(currentQuery);
+
+        updateEmptyState();
+    }
+
+    /** Thao tác quản trị cần mạng: báo kết quả chung. */
+    private SyncManager.Callback adminResult(String successMsg) {
+        return (status, more) -> {
+            if (isFinishing() || isDestroyed()) return;
+            if (status == SyncManager.Status.OK) {
+                Toast.makeText(this, successMsg, Toast.LENGTH_SHORT).show();
+                loadDashboardData();
+            } else if (status == SyncManager.Status.OFFLINE) {
+                Toast.makeText(this, "Cần kết nối mạng để thực hiện thao tác quản trị!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Thao tác thất bại, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+            }
+        };
+    }
+
+    private void filterUsers(String query) {
+        userList.clear();
+        String q = query != null ? query.trim().toLowerCase() : "";
+        if (q.isEmpty()) {
+            userList.addAll(allUserList);
+        } else {
+            for (UserModel u : allUserList) {
+                if (u.getUsername().toLowerCase().contains(q) ||
+                    u.getFullName().toLowerCase().contains(q) ||
+                    u.getRole().toLowerCase().contains(q)) {
+                    userList.add(u);
+                }
+            }
+        }
+        if (userAdapter != null) userAdapter.notifyDataSetChanged();
+        updateEmptyState();
+    }
+
+    private void setupTabs() {
+        tabPosts.setOnClickListener(v -> selectTab(tabPosts));
+        tabUsers.setOnClickListener(v -> selectTab(tabUsers));
+        tabReports.setOnClickListener(v -> selectTab(tabReports));
+    }
+
+    private void selectTab(TextView selected) {
+        for (TextView tab : new TextView[]{tabPosts, tabUsers, tabReports}) {
+            if (tab == selected) {
+                tab.setBackgroundResource(R.drawable.bg_chip_selected);
+                tab.setTextColor(ContextCompat.getColor(this, R.color.white));
+                tab.setTypeface(null, android.graphics.Typeface.BOLD);
+            } else {
+                tab.setBackground(null);
+                tab.setTextColor(ContextCompat.getColor(this, R.color.colorTextSecondary));
+                tab.setTypeface(null, android.graphics.Typeface.NORMAL);
+            }
+        }
+        rvPosts.setVisibility(selected == tabPosts ? View.VISIBLE : View.GONE);
+        layoutAdminUsersContainer.setVisibility(selected == tabUsers ? View.VISIBLE : View.GONE);
+        rvReports.setVisibility(selected == tabReports ? View.VISIBLE : View.GONE);
+        updateEmptyState();
+    }
+
+    private void showAdminLogoutDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_confirm_logout, null, false);
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_logout_title);
+        TextView tvMsg = dialogView.findViewById(R.id.tv_dialog_logout_msg);
+        View btnCancel = dialogView.findViewById(R.id.btn_dialog_logout_cancel);
+        View btnConfirm = dialogView.findViewById(R.id.btn_dialog_logout_confirm);
+
+        if (tvTitle != null) tvTitle.setText("Đăng xuất quản trị");
+        if (tvMsg != null) tvMsg.setText("Bạn có chắc chắn muốn đăng xuất khỏi phiên làm việc Quản trị viên?");
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (MusicService.isPlaying) MusicService.pause(this);
+                AuthManager.signOut(this);
+                Toast.makeText(this, "Đã đăng xuất tài khoản Quản trị!", Toast.LENGTH_SHORT).show();
+                android.content.Intent intent = new android.content.Intent(this, LoginActivity.class);
+                intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
+        }
+
+        dialog.show();
+    }
+
+    private void updateEmptyState() {
+        if (tvEmpty == null) return;
+        if (rvPosts.getVisibility() == View.VISIBLE) {
+            tvEmpty.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
+            tvEmpty.setText("Chưa có bài hát nào trên hệ thống");
+        } else if (layoutAdminUsersContainer.getVisibility() == View.VISIBLE) {
+            tvEmpty.setVisibility(userList.isEmpty() ? View.VISIBLE : View.GONE);
+            tvEmpty.setText("Không tìm thấy người dùng phù hợp");
+        } else {
+            tvEmpty.setVisibility(reportList.isEmpty() ? View.VISIBLE : View.GONE);
+            tvEmpty.setText("✓ Không có bài viết vi phạm nào cần xử lý");
+        }
+    }
+
+    private void showDeletePostConfirmDialog(PostModel post) {
+        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
+                .setTitle("Xác Nhận Xóa Bài")
+                .setMessage("Bạn có chắc chắn muốn xóa bài hát \"" + post.getSongTitle() + " - " + post.getArtistName()
+                        + "\" khỏi hệ thống không? Bình luận, lượt thích và báo cáo của bài cũng bị xóa.")
+                .setPositiveButton("Xóa ngay", (dialog, which) ->
+                        sync.adminDeletePost(post.getId(), adminResult("Đã xóa bài hát khỏi hệ thống thành công!")))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    /** Ẩn bài vi phạm khỏi cộng đồng (hoặc hiện lại bài đã ẩn). */
+    private void confirmToggleHidden(PostModel post) {
+        boolean hide = !post.isHiddenByAdmin();
+        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
+                .setTitle(hide ? "Ẩn bài viết vi phạm" : "Hiện lại bài viết")
+                .setMessage(hide
+                        ? "Bài \"" + post.getSongTitle() + "\" sẽ không còn hiển thị với thành viên. Các báo cáo của bài được đánh dấu đã xử lý."
+                        : "Bài \"" + post.getSongTitle() + "\" sẽ hiển thị lại trên bảng tin cộng đồng.")
+                .setPositiveButton(hide ? "Ẩn bài" : "Hiện lại", (dialog, which) ->
+                        sync.adminSetPostHidden(post.getId(), hide,
+                                adminResult(hide ? "Đã ẩn bài viết vi phạm" : "Đã hiện lại bài viết")))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    /** Bài không vi phạm: bỏ qua (xóa) các báo cáo của bài. */
+    private void confirmDismissReports(PostModel post) {
+        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
+                .setTitle("Bỏ qua báo cáo")
+                .setMessage("Xác nhận bài \"" + post.getSongTitle() + "\" không vi phạm và đóng các báo cáo của bài?")
+                .setPositiveButton("Bỏ qua", (dialog, which) ->
+                        sync.adminDismissReports(post.getId(), adminResult("Đã bỏ qua báo cáo của bài viết")))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void toggleUserLock(UserModel user) {
+        if (user.isAdmin()) {
+            Toast.makeText(this, "Không thể khóa tài khoản Quản trị viên!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean willLock = !user.isLocked();
+        String actionTitle = willLock ? "Khóa Tài Khoản Người Dùng" : "Mở Khóa Tài Khoản";
+        String actionMsg = willLock
+                ? "Bạn có chắc chắn muốn khóa tài khoản @" + user.getUsername() + " (" + user.getFullName() + ")? Người dùng này sẽ bị chặn đăng nhập và vô hiệu hóa hoạt động."
+                : "Xác nhận mở khóa tài khoản @" + user.getUsername() + " (" + user.getFullName() + ")? Người dùng sẽ có thể đăng nhập trở lại.";
+        String confirmText = willLock ? "Khóa ngay" : "Mở khóa";
+
+        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
+                .setTitle(actionTitle)
+                .setMessage(actionMsg)
+                .setPositiveButton(confirmText, (dialog, which) -> {
+                    sync.adminSetLocked(user.getUsername(), willLock,
+                            adminResult("Đã " + (willLock ? "khóa" : "mở khóa") + " tài khoản @" + user.getUsername()));
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    @Override
+    protected int getCheckedItem() {
+        return -1;
+    }
+
+    // --- Adapter cho Quản lý bài hát & Bài viết vi phạm ---
+    public static class AdminPostAdapter extends RecyclerView.Adapter<AdminPostAdapter.ViewHolder> {
+        public interface OnAdminPostActionListener {
+            void onPlayPost(PostModel post);
+            void onToggleHidden(PostModel post);
+            void onDismissReports(PostModel post);
+            void onDeletePost(PostModel post);
+        }
+
+        private final Context context;
+        private final List<PostModel> list;
+        private final Map<String, SyncManager.ReportedPost> reportInfo;
+        /** true = tab Bài viết vi phạm (hiện lý do báo cáo và nút Bỏ qua). */
+        private final boolean reportMode;
+        private final OnAdminPostActionListener listener;
+
+        public AdminPostAdapter(Context context, List<PostModel> list, Map<String, SyncManager.ReportedPost> reportInfo,
+                                boolean reportMode, OnAdminPostActionListener listener) {
+            this.context = context;
+            this.list = list;
+            this.reportInfo = reportInfo;
+            this.reportMode = reportMode;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_admin_post, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            PostModel post = list.get(position);
+            holder.tvAuthor.setText("@" + post.getAuthorUsername() + " • " + DatabaseHelper.formatTimeAgo(post.getCreatedAt()));
+            holder.tvGenre.setText(post.getGenre());
+            holder.tvTitle.setText(post.getSongTitle());
+            holder.tvArtist.setText(post.getArtistName());
+            holder.tvCaption.setText(post.getCaption());
+            holder.tvStats.setText(post.getLikeCount() + " lượt thích • " + post.getCommentCount() + " bình luận");
+
+            // Trạng thái kiểm duyệt
+            SyncManager.ReportedPost report = reportInfo.get(post.getId());
+            String moderation = null;
+            if (post.isHiddenByAdmin()) {
+                moderation = "🚫 Đang bị ẩn khỏi cộng đồng";
+            } else if (report != null) {
+                moderation = "⚠ " + report.reportCount + " lượt báo cáo vi phạm"
+                        + (report.reasons.isEmpty() ? "" : " • " + report.reasons);
+            }
+            holder.tvModeration.setVisibility(moderation != null ? View.VISIBLE : View.GONE);
+            if (moderation != null) holder.tvModeration.setText(moderation);
+
+            holder.btnHide.setText(post.isHiddenByAdmin() ? "Hiện lại" : "Ẩn bài");
+            holder.btnDismiss.setVisibility(reportMode ? View.VISIBLE : View.GONE);
+
+            holder.btnPlay.setOnClickListener(v -> listener.onPlayPost(post));
+            holder.btnHide.setOnClickListener(v -> listener.onToggleHidden(post));
+            holder.btnDismiss.setOnClickListener(v -> listener.onDismissReports(post));
+            holder.btnDelete.setOnClickListener(v -> listener.onDeletePost(post));
+        }
+
+        @Override
+        public int getItemCount() {
+            return list.size();
+        }
+
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            final TextView tvAuthor, tvGenre, tvTitle, tvArtist, tvCaption, tvModeration, tvStats;
+            final TextView btnPlay, btnHide, btnDismiss, btnDelete;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                tvAuthor = itemView.findViewById(R.id.tv_admin_post_author);
+                tvGenre = itemView.findViewById(R.id.tv_admin_post_genre);
+                tvTitle = itemView.findViewById(R.id.tv_admin_post_title);
+                tvArtist = itemView.findViewById(R.id.tv_admin_post_artist);
+                tvCaption = itemView.findViewById(R.id.tv_admin_post_caption);
+                tvModeration = itemView.findViewById(R.id.tv_admin_post_moderation);
+                tvStats = itemView.findViewById(R.id.tv_admin_post_stats);
+                btnPlay = itemView.findViewById(R.id.btn_admin_play_post);
+                btnHide = itemView.findViewById(R.id.btn_admin_hide_post);
+                btnDismiss = itemView.findViewById(R.id.btn_admin_dismiss_report);
+                btnDelete = itemView.findViewById(R.id.btn_admin_delete_post);
+            }
+        }
+    }
+
+    // --- Adapter cho Quản lý người dùng (thành viên) ---
+    public static class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.ViewHolder> {
+        public interface OnToggleLockListener {
+            void onToggleLock(UserModel user);
+        }
+
+        private final Context context;
+        private final List<UserModel> list;
+        private final OnToggleLockListener listener;
+
+        public AdminUserAdapter(Context context, List<UserModel> list, OnToggleLockListener listener) {
+            this.context = context;
+            this.list = list;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_admin_user, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            UserModel user = list.get(position);
+            holder.tvFullName.setText(user.getFullName());
+            holder.tvUsername.setText("@" + user.getUsername());
+            holder.tvRole.setText(user.getRole());
+            holder.tvRole.setTextColor(ContextCompat.getColor(context, R.color.colorNeonCyan));
+            holder.tvBio.setText(user.getBio());
+            holder.tvStats.setText(user.getPostsCount() + " bài chia sẻ • " + user.getFollowersCount() + " theo dõi");
+
+            if (user.isLocked()) {
+                holder.tvStatus.setText("Bị khóa ⚠️");
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.colorNeonPink));
+                holder.btnToggleLock.setText("Mở khóa");
+                holder.btnToggleLock.setTextColor(ContextCompat.getColor(context, R.color.colorNeonCyan));
+            } else {
+                holder.tvStatus.setText("Hoạt động ✓");
+                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.colorNeonCyan));
+                holder.btnToggleLock.setText("Khóa TK");
+                holder.btnToggleLock.setTextColor(ContextCompat.getColor(context, R.color.colorNeonPink));
+            }
+            holder.btnToggleLock.setOnClickListener(v -> listener.onToggleLock(user));
+        }
+
+        @Override
+        public int getItemCount() {
+            return list.size();
+        }
+
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            final TextView tvFullName, tvUsername, tvRole, tvStatus, tvBio, tvStats, btnToggleLock;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                tvFullName = itemView.findViewById(R.id.tv_admin_user_fullname);
+                tvUsername = itemView.findViewById(R.id.tv_admin_user_username);
+                tvRole = itemView.findViewById(R.id.tv_admin_user_role);
+                tvStatus = itemView.findViewById(R.id.tv_admin_user_status);
+                tvBio = itemView.findViewById(R.id.tv_admin_user_bio);
+                tvStats = itemView.findViewById(R.id.tv_admin_user_stats);
+                btnToggleLock = itemView.findViewById(R.id.btn_admin_toggle_lock);
+            }
+        }
+    }
+}

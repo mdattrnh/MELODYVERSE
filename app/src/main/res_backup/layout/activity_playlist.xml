@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_screen_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="24dp">
+
+        <!-- Top Header Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="14dp">
+
+            <ImageView
+                android:id="@+id/iv_playlist_back"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:src="@drawable/ic_arrow_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="7dp"
+                app:tint="@color/colorTextPrimary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TUYỂN TẬP PLAYLIST"
+                    android:textColor="@color/colorAccent"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:letterSpacing="0.06" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MelodyVerse Curated"
+                    android:textColor="@color/colorTextMuted"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/iv_playlist_share"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_share"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="7dp"
+                app:tint="@color/colorTextSecondary" />
+        </LinearLayout>
+
+        <!-- Hero Playlist Banner Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_gradient"
+            android:elevation="4dp"
+            android:padding="18dp"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="16dp">
+
+            <!-- Playlist Artwork Cover -->
+            <FrameLayout
+                android:id="@+id/frame_playlist_cover"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/bg_chip_selected"
+                android:elevation="4dp"
+                android:layout_marginBottom="14dp">
+
+                <TextView
+                    android:id="@+id/tv_playlist_cover_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LO-FI FOCUS"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:gravity="center"
+                    android:layout_gravity="center" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tv_playlist_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Giai Điệu Thư Giãn Lo-fi"
+                android:textColor="@color/colorTextPrimary"
+                android:textStyle="bold"
+                android:textSize="19sp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/tv_playlist_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tuyển tập những bản nhạc êm dịu, giúp bạn tập trung học tập và làm việc nhẹ nhàng."
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Stats Chip -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_tag_chip"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tv_playlist_meta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2 bài hát • 8 phút • Lossless Audio"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Big Play All Gradient Button -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_playlist_play_all"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="▶  Phát Tất Cả Bài Hát"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:background="@drawable/bg_gradient_button"
+                android:elevation="4dp" />
+        </LinearLayout>
+
+        <!-- Tracklist Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_gradient"
+            android:elevation="3dp"
+            android:padding="16dp">
+
+            <!-- Section Title -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="DANH SÁCH BÀI HÁT"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tv_playlist_track_count_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tag_chip"
+                    android:text="2 ca khúc"
+                    android:textColor="@color/colorNeonPink"
+                    android:textStyle="bold"
+                    android:textSize="11sp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chạm vào bài hát để nghe ngay • Giữ để xem bài viết"
+                android:textColor="@color/colorTextMuted"
+                android:textSize="11sp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Track List RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_playlist_tracks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
