@@ -40,6 +40,8 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.View
     private SubtitleProvider subtitleProvider;
     /** true = tô màu huy chương cho Top 1-3 (Bảng xếp hạng). */
     private boolean rankStyle = false;
+    /** Hạng của hàng đầu tiên trừ 1 (ví dụ 1 = danh sách bắt đầu từ hạng #2 vì hạng #1 đã ở banner). */
+    private int rankOffset = 0;
 
     public TrackListAdapter(Context context, List<PostModel> trackList, OnTrackClickListener clickListener) {
         this.context = context;
@@ -53,6 +55,10 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.View
 
     public void setSubtitleProvider(SubtitleProvider provider) {
         this.subtitleProvider = provider;
+    }
+
+    public void setRankOffset(int rankOffset) {
+        this.rankOffset = rankOffset;
     }
 
     public void setRankStyle(boolean rankStyle) {
@@ -70,8 +76,8 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         PostModel track = trackList.get(position);
 
-        holder.tvIndex.setText(rankStyle ? String.valueOf(position + 1) : String.format("%02d", position + 1));
-        holder.tvIndex.setTextColor(ContextCompat.getColor(context, rankColor(position)));
+        holder.tvIndex.setText(rankStyle ? String.valueOf(position + 1 + rankOffset) : String.format("%02d", position + 1));
+        holder.tvIndex.setTextColor(ContextCompat.getColor(context, rankColor(position + rankOffset)));
         holder.tvTitle.setText(track.getSongTitle());
         String subtitle = subtitleProvider != null ? subtitleProvider.subtitleFor(track, position) : null;
         holder.tvArtist.setText(subtitle != null ? subtitle : track.getArtistName());

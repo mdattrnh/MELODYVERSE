@@ -526,6 +526,8 @@ public class AuthManager {
 
     /** Đăng xuất: thoát Firebase Auth và xóa toàn bộ dữ liệu riêng của tài khoản trên máy. */
     public static void signOut(Context context) {
+        // Dừng hẳn nhạc của tài khoản cũ (không chỉ tạm dừng) để người đăng nhập sau không thấy Mini Player cũ
+        MusicService.stopAndReset(context);
         SyncManager.get(context).stopRealtime();
         FirebaseAuth.getInstance().signOut();
         SessionManager.logout(context);

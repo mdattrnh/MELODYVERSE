@@ -249,11 +249,14 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void setupListeners() {
-        // Nút Cài đặt
-        findViewById(R.id.iv_settings).setOnClickListener(v -> {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
-        });
+        // Nút Cài đặt: chỉ hiện trên hồ sơ của chính mình
+        View ivSettings = findViewById(R.id.iv_settings);
+        if (ivSettings != null) {
+            ivSettings.setVisibility(isOwnProfile ? View.VISIBLE : View.GONE);
+            if (isOwnProfile) {
+                ivSettings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+            }
+        }
 
         if (isOwnProfile) {
             // Nút Sửa hồ sơ của tài khoản chính
@@ -667,7 +670,6 @@ public class ProfileActivity extends BaseActivity {
 
     /** Thoát Firebase Auth và xóa dữ liệu riêng của tài khoản khỏi SQLite. */
     private void performLogout() {
-        if (MusicService.isPlaying) MusicService.pause(this);
         AuthManager.signOut(this);
         Toast.makeText(this, "Đã đăng xuất khỏi MelodyVerse!", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, LoginActivity.class);

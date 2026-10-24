@@ -556,6 +556,20 @@
                 android:nestedScrollingEnabled="false"
                 android:layout_marginBottom="4dp" />
 
+            <!-- Tải thêm bình luận cũ hơn (bộ nhớ đệm chỉ giữ 20 bình luận mới nhất) -->
+            <TextView
+                android:id="@+id/tv_detail_comments_more"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Xem thêm bình luận"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/tv_detail_comments_empty"
                 android:layout_width="match_parent"

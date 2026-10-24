@@ -63,12 +63,12 @@ public class AudiusApi {
         return BASE + "/tracks/" + trackId + "/stream?app_name=" + APP_NAME;
     }
 
-    /** Link bài hát trên trang audius.co (người dùng copy từ web/app Audius). */
+    /**
+     * Link bài hát trên trang audius.co (người dùng copy từ web/app Audius), có hoặc không có "www." và http(s)://.
+     * Cùng quy tắc với {@link MusicService#isSupportedAudioLink}: đúng 2 phần {nghệ sĩ}/{bài hát}.
+     */
     public static boolean isAudiusPageLink(String url) {
-        if (url == null) return false;
-        String u = url.trim().toLowerCase();
-        return u.startsWith("https://audius.co/") || u.startsWith("http://audius.co/")
-                || u.startsWith("audius.co/");
+        return MusicService.isAudiusPageLink(url);
     }
 
     /** GET /v1/tracks/search?query=... — tìm bài hát theo tên. */
@@ -95,6 +95,8 @@ public class AudiusApi {
     public static void resolve(String pageUrl, Callback<Track> callback) {
         String full = pageUrl.trim();
         if (!full.startsWith("http")) full = "https://" + full;
+        // API resolve nhận link dạng audius.co/{nghệ sĩ}/{bài hát}: bỏ "www." nếu người dùng copy kèm
+        full = full.replaceFirst("(?i)^(https?://)www\\.audius\\.co/", "$1audius.co/");
         String url = BASE + "/resolve?url=" + Uri.encode(full) + "&app_name=" + APP_NAME;
         executor.execute(() -> {
             try {

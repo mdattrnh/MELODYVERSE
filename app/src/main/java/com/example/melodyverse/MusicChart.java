@@ -35,6 +35,14 @@ public final class MusicChart {
      * Bỏ qua bài riêng tư, bài không có tên bài hát và bài hát chưa có lượt tim nào (0 tim không lên bảng).
      */
     public static List<Entry> rank(List<PostModel> posts, int limit) {
+        return rank(posts, limit, java.util.Collections.emptySet());
+    }
+
+    /**
+     * @param hiddenIds bài người xem đã tự ẩn: vẫn cộng lượt tim cho bài hát, nhưng chỉ dùng làm bài đại diện
+     *                  khi bài hát không còn bài viết nào khác
+     */
+    public static List<Entry> rank(List<PostModel> posts, int limit, java.util.Set<String> hiddenIds) {
         Map<String, PostModel> best = new LinkedHashMap<>();
         Map<String, Integer> likes = new LinkedHashMap<>();
         Map<String, Long> firstShared = new LinkedHashMap<>();
@@ -44,7 +52,10 @@ public final class MusicChart {
             int l = Math.max(0, p.getLikeCount());
             likes.put(key, likes.containsKey(key) ? likes.get(key) + l : l);
             PostModel current = best.get(key);
-            if (current == null || l > current.getLikeCount()) best.put(key, p);
+            boolean pHidden = hiddenIds.contains(p.getId());
+            boolean currentHidden = current != null && hiddenIds.contains(current.getId());
+            if (current == null || (currentHidden && !pHidden)
+                    || (currentHidden == pHidden && l > current.getLikeCount())) best.put(key, p);
             Long first = firstShared.get(key);
             if (first == null || p.getCreatedAt() < first) firstShared.put(key, p.getCreatedAt());
         }
@@ -94,6 +105,33 @@ public final class MusicChart {
             if (src != null && normalize(src).contains(queryNorm)) return true;
         }
         return false;
+    }
+
+    /**
+     * true nếu {@code tag} (đã bỏ dấu #) trùng nguyên vẹn một hashtag của bài: các thẻ trong ô hashtag,
+     * các #thẻ trong chú thích, hoặc thể loại. So sánh không dấu, bỏ ký tự đặc biệt ("#vpop" khớp "V-Pop").
+     * "#rap" không khớp "#Trap".
+     */
+    public static boolean hasHashtag(String tag, String hashtags, String caption, String genre) {
+        String want = tagKey(tag);
+        if (want.isEmpty()) return false;
+        if (want.equals(tagKey(genre))) return true;
+        if (hashtags != null) {
+            for (String t : hashtags.split("[\\s,;#]+")) {
+                if (want.equals(tagKey(t))) return true;
+            }
+        }
+        if (caption != null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("#([^\\s#,;.!?]+)").matcher(caption);
+            while (m.find()) {
+                if (want.equals(tagKey(m.group(1)))) return true;
+            }
+        }
+        return false;
+    }
+
+    private static String tagKey(String s) {
+        return normalize(s).replaceAll("[^a-z0-9]", "");
     }
 
     /** Khóa nhận diện một bài hát: tên bài + nghệ sĩ, bỏ dấu, không phân biệt hoa thường. */

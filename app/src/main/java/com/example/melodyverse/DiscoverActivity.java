@@ -74,6 +74,7 @@ public class DiscoverActivity extends BaseActivity {
         rvChart.setLayoutManager(new LinearLayoutManager(this));
         chartAdapter = new TrackListAdapter(this, chartShown, (track, position) -> togglePlay(track));
         chartAdapter.setRankStyle(true);
+        chartAdapter.setRankOffset(1);
         chartAdapter.setSubtitleProvider((track, position) ->
                 track.getArtistName() + " · " + MusicChart.likesLabel(chartShownLikes.get(position)));
         chartAdapter.setOnTrackLongClickListener((track, position) -> openPost(track));
@@ -89,7 +90,8 @@ public class DiscoverActivity extends BaseActivity {
     /** Đọc lại bảng xếp hạng từ SQLite (gọi mỗi khi lượt tim thay đổi: mình thả tim, realtime, quay lại màn hình). */
     private void loadChart() {
         chartEntries.clear();
-        chartEntries.addAll(MusicChart.rank(dbHelper.getAllPosts(), MusicChart.TOP_SIZE));
+        // Bài mình tự ẩn vẫn được cộng tim cho bài hát (ẩn chỉ áp dụng cho bảng tin của mình)
+        chartEntries.addAll(MusicChart.rank(dbHelper.getChartPosts(), MusicChart.TOP_SIZE, dbHelper.getHiddenPostIds()));
         applySearch();
     }
 
@@ -190,11 +192,12 @@ public class DiscoverActivity extends BaseActivity {
         String q = MusicChart.normalize(searchQuery);
         boolean searching = !q.isEmpty();
 
+        // Hạng #1 đã nằm ở banner Top 1 phía trên: danh sách bắt đầu từ hạng #2 để không lặp lại
         chartShown.clear();
         chartShownLikes.clear();
-        for (MusicChart.Entry e : chartEntries) {
-            chartShown.add(e.post);
-            chartShownLikes.add(e.totalLikes);
+        for (int i = 1; i < chartEntries.size(); i++) {
+            chartShown.add(chartEntries.get(i).post);
+            chartShownLikes.add(chartEntries.get(i).totalLikes);
         }
         chartAdapter.notifyDataSetChanged();
 

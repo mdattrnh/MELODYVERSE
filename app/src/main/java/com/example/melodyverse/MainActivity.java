@@ -54,7 +54,6 @@ public class MainActivity extends BaseActivity {
     private boolean queuedUserInitiated = false;
     private androidx.core.widget.NestedScrollView nestedScrollMain;
     private View layoutSearchBarRef;
-    private View viewBellBadge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +107,6 @@ public class MainActivity extends BaseActivity {
         androidx.core.widget.NestedScrollView nestedScroll = findViewById(R.id.nested_scroll_main);
         nestedScrollMain = nestedScroll;
         layoutSearchBarRef = layoutSearchBar;
-        viewBellBadge = findViewById(R.id.view_bell_badge);
         if (nestedScroll != null) {
             nestedScroll.setOnScrollChangeListener((androidx.core.widget.NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
                 // Lướt gần cuối bảng tin -> tải thêm bài cũ hơn
@@ -129,16 +127,6 @@ public class MainActivity extends BaseActivity {
             });
         }
 
-        // Nút chuông thông báo -> Mở NotificationsActivity
-        View layoutBell = findViewById(R.id.layout_bell);
-        if (layoutBell != null) {
-            layoutBell.setOnClickListener(v -> {
-                Intent intent = new Intent(this, NotificationsActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
-            });
-        }
-
         ivClearSearch = findViewById(R.id.iv_clear_search);
         tvFeedTitle = findViewById(R.id.tv_feed_title);
         tvSearchSummary = findViewById(R.id.tv_search_summary);
@@ -152,15 +140,9 @@ public class MainActivity extends BaseActivity {
             });
         }
 
-        // Gợi ý tìm kiếm trong màn hình rỗng
-        View chipSayHi = findViewById(R.id.chip_suggest_sayhi);
-        View chipVpop = findViewById(R.id.chip_suggest_vpop);
-        View chipHieu = findViewById(R.id.chip_suggest_hieu);
+        // Màn hình không có kết quả: nút xem lại toàn bộ bảng tin
         View btnResetSearch = findViewById(R.id.btn_reset_search);
 
-        if (chipSayHi != null) chipSayHi.setOnClickListener(v -> { if (etSearch != null) etSearch.setText("Say Hi"); });
-        if (chipVpop != null) chipVpop.setOnClickListener(v -> { if (etSearch != null) etSearch.setText("V-Pop"); });
-        if (chipHieu != null) chipHieu.setOnClickListener(v -> { if (etSearch != null) etSearch.setText("HIEUTHUHAI"); });
         if (btnResetSearch != null) btnResetSearch.setOnClickListener(v -> { if (etSearch != null) etSearch.setText(""); });
 
         // Ô tìm kiếm thời gian thực (Lọc theo tên bài hát, nghệ sĩ hoặc thể loại)
@@ -378,13 +360,6 @@ public class MainActivity extends BaseActivity {
         dialog.show();
     }
 
-    /** Chấm đỏ trên chuông: chỉ hiện khi tài khoản hiện tại còn thông báo chưa đọc. */
-    private void updateBellBadge() {
-        if (viewBellBadge == null) return;
-        int unread = dbHelper.getUnreadNotificationCount(SessionManager.getCurrentUsername(this));
-        viewBellBadge.setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
-    }
-
     private void loadMoreHome() {
         boolean searching = etSearch != null && etSearch.getText().toString().trim().length() > 0;
         if (isLoadingMore || !hasMoreHome || searching || !activeGenreLabel.isEmpty() || !sync.isOnline()) return;
@@ -422,7 +397,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onLocalDataChanged() {
         refreshFeed();
-        updateBellBadge();
+        updateNotificationBadge();
     }
 
     @Override
@@ -432,16 +407,14 @@ public class MainActivity extends BaseActivity {
 
     private void setupGenreFilterChips() {
         chipGenreAll = findViewById(R.id.chip_genre_all);
-        TextView chipTrending = findViewById(R.id.chip_genre_trending);
         TextView chipVpop = findViewById(R.id.chip_genre_vpop);
         TextView chipRap = findViewById(R.id.chip_genre_rap);
         TextView chipChill = findViewById(R.id.chip_genre_chill);
         TextView chipRnb = findViewById(R.id.chip_genre_rnb);
 
-        genreChips = Arrays.asList(chipGenreAll, chipTrending, chipVpop, chipRap, chipChill, chipRnb);
+        genreChips = Arrays.asList(chipGenreAll, chipVpop, chipRap, chipChill, chipRnb);
 
         bindGenreChip(chipGenreAll);
-        bindGenreChip(chipTrending, "Say Hi");
         bindGenreChip(chipVpop, "V-Pop");
         bindGenreChip(chipRap, "Rap", "Hip-Hop");
         bindGenreChip(chipChill, "Indie", "Chill", "Acoustic", "Ballad");
@@ -532,10 +505,10 @@ public class MainActivity extends BaseActivity {
         if (postAdapter != null) {
             postAdapter.notifyDataSetChanged();
         }
-        updateBellBadge();
+        updateNotificationBadge();
         // Tải thông báo của tài khoản hiện tại để chấm đỏ trên chuông luôn đúng
         sync.refreshNotifications(false, (status, more) -> {
-            if (!isFinishing() && !isDestroyed()) updateBellBadge();
+            if (!isFinishing() && !isDestroyed()) updateNotificationBadge();
         });
     }
 
@@ -639,6 +612,10 @@ public class MainActivity extends BaseActivity {
     }
 
     private boolean matchesPost(PostModel p, String lower, String normQuery, String noHashQuery) {
+        // Tìm theo hashtag (#rap): phải khớp đúng nguyên hashtag / thể loại, "#rap" không khớp "#Trap"
+        if (normQuery.startsWith("#")) {
+            return MusicChart.hasHashtag(noHashQuery, p.getHashtags(), p.getCaption(), p.getGenre());
+        }
         return checkContains(p.getSongTitle(), lower, normQuery, noHashQuery)
                 || checkContains(p.getArtistName(), lower, normQuery, noHashQuery)
                 || checkContains(p.getAuthorName(), lower, normQuery, noHashQuery)

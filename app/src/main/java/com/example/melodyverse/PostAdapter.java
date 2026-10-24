@@ -316,9 +316,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 .setTitle("Xóa bài viết?")
                 .setMessage("Bài \"" + post.getSongTitle() + "\" cùng toàn bộ bình luận, lượt thích sẽ bị xóa vĩnh viễn.")
                 .setPositiveButton("Xóa", (dialog, which) -> {
-                    if (MusicService.isPlaying && post.getId().equals(MusicService.currentPostId)) {
-                        MusicService.pause(context);
-                    }
+                    // Dừng hẳn (kể cả khi đang tạm dừng) để Mini Player không còn giữ bài đã xóa
+                    MusicService.stopIfPlaying(context, post.getId());
                     DatabaseHelper.getInstance(context).deletePost(post.getId());
                     boolean online = SyncManager.get(context).isOnline();
                     Toast.makeText(context, online

@@ -98,6 +98,7 @@ public class NotificationsActivity extends BaseActivity {
 
     /** Vẽ lại danh sách, chấm đỏ và số chưa đọc từ SQLite (chỉ thông báo của tài khoản đang đăng nhập). */
     private void renderList() {
+        updateNotificationBadge();
         if (listContainer == null) return;
         listContainer.removeAllViews();
         List<NotificationModel> list = dbHelper.getNotifications(me());

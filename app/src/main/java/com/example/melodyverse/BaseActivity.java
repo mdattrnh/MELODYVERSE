@@ -262,6 +262,22 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
         }
     }
 
+    /** Số thông báo chưa đọc hiện trên tab "Thông báo" của thanh điều hướng dưới (ẩn khi đã đọc hết). */
+    protected void updateNotificationBadge() {
+        if (bottomNavigationView == null || bottomNavigationView.getMenu().findItem(R.id.nav_notifications) == null) return;
+        String me = SessionManager.getCurrentUsername(this);
+        int unread = me == null ? 0 : DatabaseHelper.getInstance(this).getUnreadNotificationCount(me);
+        if (unread > 0) {
+            com.google.android.material.badge.BadgeDrawable badge =
+                    bottomNavigationView.getOrCreateBadge(R.id.nav_notifications);
+            badge.setNumber(unread);
+            badge.setMaxCharacterCount(3); // 100+ hiện "99+"
+            badge.setVisible(true);
+        } else {
+            bottomNavigationView.removeBadge(R.id.nav_notifications);
+        }
+    }
+
     /** Đánh dấu tab hiện tại mà không kích hoạt điều hướng. */
     protected void syncBottomNavSelection() {
         if (bottomNavigationView != null && getCheckedItem() != -1) {
@@ -283,6 +299,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
     protected void onResume() {
         super.onResume();
         syncBottomNavSelection();
+        updateNotificationBadge();
 
         // Đăng ký nhận Broadcast từ MusicService
         try {
@@ -328,6 +345,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
             goToLogin("Tài khoản của bạn đã bị Quản trị viên khóa. Vui lòng liên hệ ban quản trị để được hỗ trợ.");
         } else if (SyncManager.EVENT_DATA_CHANGED.equals(event)) {
             onLocalDataChanged();
+            updateNotificationBadge();
         } else if (SyncManager.EVENT_RECONNECTED.equals(event)) {
             onReconnectedRefresh();
         }
@@ -343,7 +361,6 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
 
     /** Thoát phiên và quay về màn Đăng nhập (kèm thông báo nếu có). */
     protected void goToLogin(String message) {
-        if (MusicService.isPlaying) MusicService.pause(this);
         AuthManager.signOut(this);
         Intent loginIntent = new Intent(this, LoginActivity.class);
         loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

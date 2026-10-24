@@ -51,33 +51,6 @@
                 android:src="@drawable/ic_search"
                 app:tint="@color/colorTextPrimary" />
         </FrameLayout>
-
-        <!-- Nút Chuông thông báo -->
-        <FrameLayout
-            android:id="@+id/layout_bell"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless">
-
-            <ImageView
-                android:id="@+id/iv_header_bell"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_notifications"
-                app:tint="@color/colorTextPrimary" />
-
-            <!-- Chấm đỏ: chỉ hiện khi tài khoản đang đăng nhập còn thông báo chưa đọc -->
-            <View
-                android:id="@+id/view_bell_badge"
-                android:visibility="gone"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:layout_gravity="top|end"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="9dp"
-                android:background="@drawable/bg_badge_dot" />
-        </FrameLayout>
     </LinearLayout>
 
     <!-- Thanh tìm kiếm mở rộng (Ẩn mặc định, nhấn kính lúp để mở) -->
@@ -102,7 +75,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_search_pill"
-                android:hint="Tìm bài hát, nghệ sĩ, thể loại"
+                android:hint="Tìm bài viết: #hashtag, người đăng, chú thích..."
                 android:textColorHint="@color/colorInputHint"
                 android:textColor="@color/colorTextPrimary"
                 android:textSize="15sp"
@@ -175,19 +148,6 @@
                         android:textSize="14sp"
                         android:gravity="center"
                         android:background="@drawable/bg_chip_selected"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:id="@+id/chip_genre_trending"
-                        android:layout_width="wrap_content"
-                        android:layout_height="34dp"
-                        android:text="Thịnh hành"
-                        android:textColor="@color/colorTextPrimary"
-                        android:textSize="14sp"
-                        android:gravity="center"
-                        android:background="@drawable/bg_chip_unselected"
                         android:paddingStart="14dp"
                         android:paddingEnd="14dp"
                         android:layout_marginEnd="8dp" />
@@ -340,63 +300,6 @@
                     android:gravity="center"
                     android:lineSpacingExtra="3dp"
                     android:layout_marginBottom="16dp" />
-
-                <!-- Các chip gợi ý nhanh để người dùng bấm vào là tìm được ngay -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Tìm nhanh"
-                    android:textColor="@color/colorTextMuted"
-                    android:textSize="13sp"
-                    android:layout_marginBottom="8dp" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/chip_suggest_sayhi"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_chip_unselected"
-                        android:text="Say Hi"
-                        android:textColor="@color/colorTextPrimary"
-                        android:textSize="13sp"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:paddingTop="7dp"
-                        android:paddingBottom="7dp"
-                        android:layout_marginEnd="6dp" />
-
-                    <TextView
-                        android:id="@+id/chip_suggest_vpop"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_chip_unselected"
-                        android:text="V-Pop"
-                        android:textColor="@color/colorTextPrimary"
-                        android:textSize="13sp"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:paddingTop="7dp"
-                        android:paddingBottom="7dp"
-                        android:layout_marginEnd="6dp" />
-
-                    <TextView
-                        android:id="@+id/chip_suggest_hieu"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_chip_unselected"
-                        android:text="HIEUTHUHAI"
-                        android:textColor="@color/colorTextPrimary"
-                        android:textSize="13sp"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:paddingTop="7dp"
-                        android:paddingBottom="7dp" />
-                </LinearLayout>
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btn_reset_search"

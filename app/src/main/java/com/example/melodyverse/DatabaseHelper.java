@@ -342,6 +342,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return queryPosts("WHERE " + notHidden() + " ORDER BY p." + COL_CREATED_AT + " DESC");
     }
 
+    /**
+     * Bài viết dùng để tính Bảng xếp hạng: gồm cả bài người đang đăng nhập tự ẩn (ẩn chỉ là ẩn khỏi bảng tin của mình,
+     * lượt tim của bài vẫn tính cho bài hát), chỉ loại bài đã xóa đang chờ xóa trên Firebase.
+     */
+    public List<PostModel> getChartPosts() {
+        return queryPosts("WHERE p." + COL_SYNC_STATUS + " != '" + SyncStatus.PENDING_DELETE
+                + "' ORDER BY p." + COL_CREATED_AT + " DESC");
+    }
+
+    /** Mã các bài người đang đăng nhập đã ẩn. */
+    public java.util.Set<String> getHiddenPostIds() {
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        Cursor c = getReadableDatabase().rawQuery("SELECT " + COL_R_POST_ID + " FROM " + TABLE_HIDDEN
+                + " WHERE " + COL_R_USERNAME + " = ?", new String[]{currentUser()});
+        while (c.moveToNext()) ids.add(c.getString(0));
+        c.close();
+        return ids;
+    }
+
     /** Điều kiện SQL loại các bài người đang đăng nhập đã ẩn và bài đã xóa đang chờ xóa trên Firebase. */
     private String notHidden() {
         return "p." + COL_SYNC_STATUS + " != '" + SyncStatus.PENDING_DELETE + "' AND p." + COL_ID

@@ -53,9 +53,9 @@
 ### 👤 Thành viên
 - **Tài khoản:** đăng ký / đăng nhập bằng username hoặc email, đăng nhập Google; tài khoản mới được gợi ý nghệ sĩ để theo dõi (không tự theo dõi sẵn).
 - **Bảng tin:** bài hát dạng đĩa than (xoay khi phát), tìm kiếm tiếng Việt không dấu & hashtag, lọc thể loại, vuốt / bấm lại Home để làm mới, ẩn bài.
-- **Tương tác:** thả tim, bình luận (sắp xếp Mới nhất / Cũ nhất / Nổi bật), **chia sẻ = sao chép liên kết bài hát**, báo cáo bài vi phạm, bấm tên / ảnh tác giả hoặc người bình luận để mở trang cá nhân.
+- **Tương tác:** thả tim, bình luận (sắp xếp Mới nhất / Cũ nhất, "Xem thêm bình luận"), **chia sẻ = sao chép liên kết bài hát**, báo cáo bài vi phạm, bấm tên / ảnh tác giả hoặc người bình luận để mở trang cá nhân.
 - **Đăng bài:** chọn bài hát mẫu hoặc dán link nhạc (Audius), chế độ Công khai / Riêng tư, sửa / xóa bài của mình.
-- **Khám phá:** **Bảng xếp hạng thịnh hành** (Top 10, tự xếp theo tổng lượt tim, cập nhật khi thả / bỏ tim) và **Vòng xoay đĩa than**.
+- **Khám phá:** **Bảng xếp hạng thịnh hành** (Top 3, tự xếp theo tổng lượt tim, cập nhật khi thả / bỏ tim) và **Vòng xoay đĩa than**.
 - **Hồ sơ:** Bài đã chia sẻ, Bài đã thích, **Danh sách nhạc đã lưu** (chỉ lưu bản nhạc; bấm để nghe, *Phát tất cả* — bài tiếp theo chỉ lấy trong danh sách), người theo dõi / đang theo dõi.
 - **Trình phát:** mini player, màn Đang phát (đĩa than + sóng âm, tua), Tiếp theo, **Lặp lại / Ngẫu nhiên loại trừ nhau**, thông báo điều khiển nhạc.
 - **Thông báo:** theo từng tài khoản (thích, bình luận, theo dõi, bài mới), nút hành động mở đúng bài / bình luận / hồ sơ.

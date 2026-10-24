@@ -102,6 +102,10 @@ public class SyncManager {
     }
 
     public static final int PAGE_SIZE = 10;
+    /** Số trang tải liên tiếp tối đa khi các trang toàn bài bị lọc (riêng tư / bị ẩn). */
+    private static final int MAX_EMPTY_PAGES = 5;
+    /** Bài cuối cùng của lần tải Bảng tin gần nhất: con trỏ phân trang cho "Tải thêm". */
+    private volatile DocumentSnapshot homeCursor;
     private static final int SCAN_SIZE = 60;
     private static final long TIMEOUT_SECONDS = 20;
     private static final long ACCOUNT_CHECK_INTERVAL = 60_000;
@@ -516,14 +520,25 @@ public class SyncManager {
     public void refreshHome(boolean reset, Callback cb) {
         boolean[] hasMore = {false};
         runRefresh(cb, hasMore, () -> {
-            Query q = fs.collection(C_POSTS).orderBy("createdAt", Query.Direction.DESCENDING);
-            if (!reset) {
-                long oldest = db.getOldestFeedCreatedAt(DatabaseHelper.FEED_HOME);
-                if (oldest > 0) q = q.startAfter(oldest);
+            Query base = fs.collection(C_POSTS).orderBy("createdAt", Query.Direction.DESCENDING);
+            DocumentSnapshot cursor = reset ? null : homeCursor;
+            long oldest = reset || cursor != null ? 0 : db.getOldestFeedCreatedAt(DatabaseHelper.FEED_HOME);
+            List<PostModel> page = new ArrayList<>();
+            // Con trỏ là bài CUỐI CÙNG đã tải về (kể cả bài bị lọc: riêng tư / bị ẩn), nên luôn tiến lên.
+            // Cả trang bị lọc hết thì tải tiếp trang sau, tối đa vài lượt, để không kẹt ở "Tải thêm".
+            for (int round = 0; round < MAX_EMPTY_PAGES && page.isEmpty(); round++) {
+                Query q = base;
+                if (cursor != null) q = q.startAfter(cursor);
+                else if (oldest > 0) q = q.startAfter(oldest);
+                QuerySnapshot snap = await(q.limit(PAGE_SIZE).get());
+                hasMore[0] = snap.size() >= PAGE_SIZE;
+                if (!snap.isEmpty()) {
+                    cursor = snap.getDocuments().get(snap.size() - 1);
+                    homeCursor = cursor;
+                }
+                page.addAll(visiblePosts(snap.getDocuments()));
+                if (!hasMore[0]) break;
             }
-            QuerySnapshot snap = await(q.limit(PAGE_SIZE).get());
-            hasMore[0] = snap.size() >= PAGE_SIZE;
-            List<PostModel> page = visiblePosts(snap.getDocuments());
             if (reset) {
                 for (PostModel p : undatedPosts.values()) {
                     if (isVisible(p)) page.add(p);
@@ -604,6 +619,36 @@ public class SyncManager {
 
     public interface UsersCallback {
         void onDone(List<UserModel> users);
+    }
+
+    public interface CommentsCallback {
+        /** @param comments null nếu offline / lỗi */
+        void onDone(List<CommentModel> comments);
+    }
+
+    /**
+     * Tải {@code limit} bình luận của bài từ Firebase theo thứ tự thời gian (cũ nhất trước hoặc mới nhất trước).
+     * Dùng cho "Xem thêm bình luận" và sắp xếp "Cũ nhất" (bộ nhớ đệm SQLite chỉ giữ 20 bình luận mới nhất).
+     */
+    public void loadComments(String postId, boolean oldestFirst, int limit, CommentsCallback cb) {
+        if (!isOnline() || !isSignedIn()) {
+            main.post(() -> cb.onDone(null));
+            return;
+        }
+        executor.execute(() -> {
+            List<CommentModel> comments = null;
+            try {
+                QuerySnapshot cs = await(fs.collection(C_POSTS).document(postId).collection(C_COMMENTS)
+                        .orderBy("createdAt", oldestFirst ? Query.Direction.ASCENDING : Query.Direction.DESCENDING)
+                        .limit(limit).get());
+                comments = new ArrayList<>();
+                for (DocumentSnapshot d : cs.getDocuments()) comments.add(docToComment(postId, d));
+            } catch (Exception e) {
+                Log.w(TAG, "Tải bình luận thất bại: " + e.getMessage());
+            }
+            List<CommentModel> result = comments;
+            main.post(() -> cb.onDone(result));
+        });
     }
 
     /**

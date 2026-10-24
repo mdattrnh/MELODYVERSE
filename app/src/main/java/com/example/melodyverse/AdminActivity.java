@@ -383,7 +383,6 @@ public class AdminActivity extends BaseActivity {
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
                 dialog.dismiss();
-                if (MusicService.isPlaying) MusicService.pause(this);
                 AuthManager.signOut(this);
                 Toast.makeText(this, "Đã đăng xuất tài khoản Quản trị!", Toast.LENGTH_SHORT).show();
                 android.content.Intent intent = new android.content.Intent(this, LoginActivity.class);

@@ -30,6 +30,8 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     /** Bài viết của bài hát vừa bị xóa / ẩn trên hệ thống: dừng hẳn, đóng thông báo và thu hồi Mini Player. */
     public static final String ACTION_STOP_UNAVAILABLE = "com.example.melodyverse.ACTION_STOP_UNAVAILABLE";
     public static final String ACTION_SEEK = "com.example.melodyverse.ACTION_SEEK";
+    /** Đăng xuất: dừng hẳn và xóa bài đang phát, danh sách phát, lịch sử nghe của tài khoản cũ. */
+    public static final String ACTION_RESET = "com.example.melodyverse.ACTION_RESET";
 
     public static final String ACTION_MUSIC_STATUS_CHANGED = "com.example.melodyverse.MUSIC_STATUS_CHANGED";
     public static final String EXTRA_IS_PLAYING = "is_playing";
@@ -144,6 +146,13 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                 int rawRes = intent.getIntExtra(EXTRA_RAW_RES, 0);
                 String url = intent.getStringExtra(EXTRA_MUSIC_URL);
 
+                // Bấm Play đúng bài đang tạm dừng / đang tải: phát tiếp, không phát lại từ đầu
+                if (postId != null && postId.equals(currentPostId) && hasTrackLoaded && mediaPlayer != null
+                        && java.util.Objects.equals(url, currentMusicUrl)) {
+                    if (!isPlaying) resumeTrack();
+                    break;
+                }
+
                 if (postId != null && hasTrackLoaded && !postId.equals(currentPostId)) rememberInHistory(currentPostId);
                 if (title != null) currentSongTitle = title;
                 if (artist != null) currentArtistName = artist;
@@ -189,6 +198,11 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                 }
                 break;
 
+            case ACTION_RESET:
+                playHistory.clear();
+                stopUnavailable();
+                break;
+
             case ACTION_SEEK:
                 int seekPos = intent.getIntExtra(EXTRA_SEEK_POSITION, 0);
                 if (mediaPlayer != null) {
@@ -226,6 +240,27 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             ".mp3", ".wav", ".ogg", ".oga", ".m4a", ".aac", ".flac", ".opus", ".weba", ".webm"};
 
     /**
+     * Link trang bài hát trên Audius (audius.co hoặc www.audius.co, có hoặc không có http(s)://):
+     * đúng 2 phần {nghệ sĩ}/{bài hát}. Dùng chung cho bước kiểm tra link và bước gọi API /resolve.
+     */
+    public static boolean isAudiusPageLink(String url) {
+        if (url == null) return false;
+        String u = url.trim().toLowerCase(java.util.Locale.ROOT);
+        if (u.isEmpty() || u.contains(" ")) return false;
+        if (!u.startsWith("http://") && !u.startsWith("https://")) u = "https://" + u;
+        try {
+            java.net.URI uri = new java.net.URI(u);
+            String host = uri.getHost();
+            if (!"audius.co".equals(host) && !"www.audius.co".equals(host)) return false;
+            String path = uri.getPath() != null ? uri.getPath() : "";
+            String[] parts = path.replaceAll("^/+|/+$", "").split("/+");
+            return parts.length == 2 && !parts[0].isEmpty() && !parts[1].isEmpty();
+        } catch (java.net.URISyntaxException e) {
+            return false;
+        }
+    }
+
+    /**
      * Liên kết âm thanh người dùng tự nhập có thuộc nguồn phát được hỗ trợ không:
      * 1. Link chia sẻ bài hát trên Audius: audius.co/{nghệ sĩ}/{bài hát}
      * 2. Link phát của Audius API: https://...audius.co/v1/tracks/{id}/stream
@@ -253,9 +288,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         if (host.equals("example.com") || host.endsWith(".example.com")) return false;
 
         if (host.equals("audius.co") || host.equals("www.audius.co")) {
-            // Trang bài hát: đúng 2 phần {nghệ sĩ}/{bài hát}
-            String[] parts = path.replaceAll("^/+|/+$", "").split("/+");
-            return parts.length == 2 && !parts[0].isEmpty() && !parts[1].isEmpty();
+            return isAudiusPageLink(lower);
         }
         if (host.endsWith("audius.co")) {
             return path.matches("/v1/tracks/[A-Za-z0-9]+/stream/?");
@@ -754,6 +787,29 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             context.startService(intent);
         } catch (Exception e) {
             // App đang chạy nền (không được khởi động Service): đóng thông báo trực tiếp
+            NotificationHelper.cancelMusicNotification(context);
+        }
+    }
+
+    /** Đăng xuất: dừng nhạc và xóa toàn bộ trạng thái phát để tài khoản sau không thấy Mini Player của người trước. */
+    public static void stopAndReset(Context context) {
+        // Cập nhật ngay trạng thái dùng chung để giao diện ẩn Mini Player không cần chờ Service
+        isPlaying = false;
+        hasTrackLoaded = false;
+        isBuffering = false;
+        currentPosition = 0;
+        currentDuration = 0;
+        currentMusicUrl = null;
+        playQueue = null;
+        playQueueName = null;
+        playHistory.clear();
+        BaseActivity.isGlobalPlaying = false;
+        BaseActivity.isMiniPlayerDismissed = false;
+        Intent intent = new Intent(context, MusicService.class);
+        intent.setAction(ACTION_RESET);
+        try {
+            context.startService(intent);
+        } catch (Exception e) {
             NotificationHelper.cancelMusicNotification(context);
         }
     }

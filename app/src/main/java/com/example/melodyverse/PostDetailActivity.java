@@ -61,7 +61,12 @@ public class PostDetailActivity extends BaseActivity {
     private TextView tvLikeCount, tvCommentCount, tvShareCount, tvCommentsHeaderCount, tvCommentsEmpty;
     private View btnCommentSort;
     private TextView tvCommentSortLabel;
-    private int currentSortType = 0; // 0: Mới nhất, 1: Cũ nhất, 2: Nổi bật
+    private int currentSortType = 0; // 0: Mới nhất, 1: Cũ nhất
+    // Bình luận tải thêm từ Firebase (ngoài 20 bình luận mới nhất trong SQLite); null = chỉ dùng bộ nhớ đệm
+    private List<CommentModel> serverComments;
+    private int commentLimit = DatabaseHelper.LIMIT_COMMENTS_PER_POST;
+    private boolean loadingComments = false;
+    private TextView tvCommentsMore;
     private View layoutMusicCard, frameMusicArt, btnLike, btnComment, btnShare;
     private LinearLayout layoutEqWave;
     private View eqBar1, eqBar2, eqBar3, eqBar4;
@@ -190,6 +195,11 @@ public class PostDetailActivity extends BaseActivity {
         btnCommentSort = findViewById(R.id.btn_comment_sort);
         tvCommentSortLabel = findViewById(R.id.tv_comment_sort_label);
         rvComments = findViewById(R.id.rv_detail_comments);
+        tvCommentsMore = findViewById(R.id.tv_detail_comments_more);
+        if (tvCommentsMore != null) tvCommentsMore.setOnClickListener(v -> {
+            commentLimit += DatabaseHelper.LIMIT_COMMENTS_PER_POST;
+            fetchServerComments();
+        });
         etCommentInput = findViewById(R.id.et_detail_comment_input);
         btnSendComment = findViewById(R.id.btn_detail_send_comment);
 
@@ -500,16 +510,28 @@ public class PostDetailActivity extends BaseActivity {
     private void setupCommentSortButton() {
         if (btnCommentSort == null) return;
         btnCommentSort.setOnClickListener(v -> {
-            String[] sortOptions = new String[]{"Mới nhất", "Cũ nhất", "Nổi bật"};
+            String[] sortOptions = new String[]{"Mới nhất", "Cũ nhất"};
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
             builder.setTitle("Sắp xếp bình luận");
             builder.setSingleChoiceItems(sortOptions, currentSortType, (dialog, which) -> {
+                boolean orderChanged = (currentSortType == 1) != (which == 1);
                 currentSortType = which;
                 if (tvCommentSortLabel != null) {
                     tvCommentSortLabel.setText(sortOptions[which]);
                 }
-                sortComments();
                 dialog.dismiss();
+                if (orderChanged && post != null && post.getCommentCount() > commentList.size()) {
+                    // Chưa có đủ bình luận trên máy: "Cũ nhất" phải lấy đúng các bình luận cũ nhất từ Firebase
+                    commentLimit = DatabaseHelper.LIMIT_COMMENTS_PER_POST;
+                    serverComments = null;
+                    if (currentSortType == 1) {
+                        fetchServerComments();
+                        return;
+                    }
+                    loadComments();
+                    return;
+                }
+                sortComments();
             });
             builder.setNegativeButton("Đóng", null);
             builder.show();
@@ -523,37 +545,61 @@ public class PostDetailActivity extends BaseActivity {
             Collections.sort(commentList, (c1, c2) -> c1.getCreatedAt() != c2.getCreatedAt()
                     ? Long.compare(c2.getCreatedAt(), c1.getCreatedAt())
                     : c2.getId().compareTo(c1.getId()));
-        } else if (currentSortType == 1) {
+        } else {
             // Cũ nhất: thời gian đăng tăng dần
             Collections.sort(commentList, (c1, c2) -> c1.getCreatedAt() != c2.getCreatedAt()
                     ? Long.compare(c1.getCreatedAt(), c2.getCreatedAt())
                     : c1.getId().compareTo(c2.getId()));
-        } else if (currentSortType == 2) {
-            // Nổi bật: Tác giả nổi tiếng hoặc bình luận dài lên trước
-            Collections.sort(commentList, (c1, c2) -> {
-                boolean f1 = isFeaturedAuthor(c1.getAuthorName());
-                boolean f2 = isFeaturedAuthor(c2.getAuthorName());
-                if (f1 != f2) return f1 ? -1 : 1;
-                return Integer.compare(c2.getContent().length(), c1.getContent().length());
-            });
         }
         if (commentAdapter != null) {
             commentAdapter.notifyDataSetChanged();
         }
     }
 
-    private boolean isFeaturedAuthor(String author) {
-        if (author == null) return false;
-        String a = author.toLowerCase();
-        return a.contains("masterd") || a.contains("hieuthuhai") || a.contains("wren") || a.contains("minh thư") || a.contains("admin");
+    /** Tải {@link #commentLimit} bình luận theo thứ tự đang chọn từ Firebase rồi hiển thị lại. */
+    private void fetchServerComments() {
+        if (post == null || loadingComments) return;
+        loadingComments = true;
+        if (tvCommentsMore != null) {
+            tvCommentsMore.setText("Đang tải bình luận...");
+            tvCommentsMore.setEnabled(false);
+        }
+        SyncManager.get(this).loadComments(post.getId(), currentSortType == 1, commentLimit, comments -> {
+            loadingComments = false;
+            if (isFinishing() || isDestroyed()) return;
+            if (tvCommentsMore != null) tvCommentsMore.setEnabled(true);
+            if (comments == null) {
+                Toast.makeText(this, "Không tải được bình luận. Vui lòng kiểm tra mạng!", Toast.LENGTH_SHORT).show();
+            } else {
+                serverComments = comments;
+            }
+            loadComments();
+        });
     }
 
     private void loadComments() {
         commentList.clear();
-        commentList.addAll(dbHelper.getCommentsByPost(post.getId()));
+        // 20 bình luận mới nhất trong SQLite (gồm cả bình luận đang chờ gửi) + phần tải thêm từ Firebase (không trùng)
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (CommentModel c : dbHelper.getCommentsByPost(post.getId())) {
+            if (seen.add(c.getId())) commentList.add(c);
+        }
+        if (serverComments != null) {
+            for (CommentModel c : serverComments) {
+                if (seen.add(c.getId())) commentList.add(c);
+            }
+        }
         sortComments();
 
         int count = commentList.size();
+        int total = Math.max(count, post.getCommentCount());
+        if (tvCommentsMore != null) {
+            boolean more = count < total && !isOfflineMode && SyncManager.get(this).isOnline();
+            tvCommentsMore.setVisibility(more ? View.VISIBLE : View.GONE);
+            if (more && !loadingComments) {
+                tvCommentsMore.setText("Xem thêm bình luận (còn " + (total - count) + ")");
+            }
+        }
         // Bài chưa từng mở khi có mạng: chưa có bình luận nào được lưu để xem offline
         boolean noOfflineComments = !dbHelper.hasCachedComments(postId)
                 && (isOfflineMode || !SyncManager.get(this).isOnline());
