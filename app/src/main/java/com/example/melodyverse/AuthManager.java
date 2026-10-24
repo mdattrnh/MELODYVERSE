@@ -228,6 +228,7 @@ public class AuthManager {
         boolean byUsername = !id.contains("@");
         String email;
         String provider = null;
+        boolean profileFound = true;
         if (byUsername) {
             DocumentSnapshot ud = sync.await(fs.collection(SyncManager.C_USERS).document(DatabaseHelper.norm(id)).get());
             if (!ud.exists()) return Result.fail("Không tìm thấy tài khoản @" + id + "!", FIELD_USERNAME);
@@ -239,16 +240,21 @@ public class AuthManager {
         } else {
             email = id;
             QuerySnapshot q = sync.await(fs.collection(SyncManager.C_USERS).whereEqualTo("email", email).limit(1).get());
-            if (!q.isEmpty()) provider = q.getDocuments().get(0).getString("provider");
+            profileFound = !q.isEmpty();
+            if (profileFound) provider = q.getDocuments().get(0).getString("provider");
         }
 
-        if (PROVIDER_GOOGLE.equals(provider)) {
-            return Result.fail("Tài khoản này được tạo bằng Google nên không có mật khẩu. "
-                    + "Vui lòng chọn \"Tiếp tục với Google\" để đăng nhập!", FIELD_USERNAME);
-        }
         if (SeedData.demoUsername(email) != null) {
             return Result.fail("Tài khoản demo dùng email mẫu nên không nhận được thư. "
                     + "Hãy thử với tài khoản đăng ký bằng email thật!", FIELD_USERNAME);
+        }
+        // Firebase (chống dò email) vẫn báo "thành công" với email lạ mà không gửi thư → tự báo rõ cho người dùng
+        if (!profileFound) {
+            return Result.fail("Chưa có tài khoản nào được liên kết với email này!", FIELD_USERNAME);
+        }
+        if (PROVIDER_GOOGLE.equals(provider)) {
+            return Result.fail("Tài khoản này được tạo bằng Google nên không có mật khẩu. "
+                    + "Vui lòng chọn \"Tiếp tục với Google\" để đăng nhập!", FIELD_USERNAME);
         }
 
         auth.setLanguageCode("vi"); // email đặt lại mật khẩu bằng tiếng Việt
@@ -257,7 +263,7 @@ public class AuthManager {
         } catch (ExecutionException e) {
             Throwable c = e.getCause();
             if (c instanceof FirebaseAuthInvalidUserException) {
-                return Result.fail("Không tìm thấy tài khoản với email này!", FIELD_USERNAME);
+                return Result.fail("Chưa có tài khoản nào được liên kết với email này!", FIELD_USERNAME);
             }
             if (c instanceof FirebaseAuthInvalidCredentialsException) {
                 return Result.fail("Email không hợp lệ!", FIELD_USERNAME);
