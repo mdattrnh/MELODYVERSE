@@ -399,7 +399,7 @@ public class ProfileActivity extends BaseActivity {
             postList.addAll(likedPosts);
             if (likedPosts.isEmpty()) {
                 tvProfileEmpty.setVisibility(View.VISIBLE);
-                tvProfileEmpty.setText("Bạn chưa thích bài viết nào.\nHãy nhấn biểu tượng Trái tim ❤️ trên bảng tin để lưu lại các bài hát yêu thích!");
+                tvProfileEmpty.setText("Bạn chưa thích bài viết nào.\nHãy nhấn biểu tượng Trái tim trên bảng tin để lưu lại các bài hát yêu thích!");
                 rvProfilePosts.setVisibility(View.GONE);
             } else {
                 tvProfileEmpty.setVisibility(View.GONE);
@@ -410,7 +410,7 @@ public class ProfileActivity extends BaseActivity {
             rvProfilePosts.setVisibility(View.GONE);
             if (savedTracks.isEmpty()) {
                 tvProfileEmpty.setVisibility(View.VISIBLE);
-                tvProfileEmpty.setText("Danh sách nhạc đã lưu đang trống.\nHãy nhấn nút Lưu 📑 trên bài viết ở Bảng tin để lưu bài hát bạn muốn nghe lại!");
+                tvProfileEmpty.setText("Danh sách nhạc đã lưu đang trống.\nHãy nhấn nút Lưu trên bài viết ở Bảng tin để lưu bài hát bạn muốn nghe lại!");
             } else {
                 tvProfileEmpty.setVisibility(View.GONE);
             }
@@ -574,7 +574,7 @@ public class ProfileActivity extends BaseActivity {
         if (btnEditProfile == null) return;
         btnEditProfile.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
         if (isTargetFollowed) {
-            btnEditProfile.setText("Đang theo dõi ✓");
+            btnEditProfile.setText("Đang theo dõi");
             btnEditProfile.setBackgroundResource(R.drawable.bg_input_field);
             btnEditProfile.setTextColor(ContextCompat.getColor(this, R.color.colorTextSecondary));
         } else {
@@ -621,7 +621,7 @@ public class ProfileActivity extends BaseActivity {
                 tvBio.setText(newBio);
                 Toast.makeText(this, SyncManager.get(this).isOnline()
                         ? "Đã lưu cập nhật hồ sơ!"
-                        : "🕒 Đã lưu hồ sơ trên máy, sẽ tự đồng bộ khi có mạng", Toast.LENGTH_SHORT).show();
+                        : "Đã lưu hồ sơ trên máy, sẽ tự đồng bộ khi có mạng", Toast.LENGTH_SHORT).show();
             }
         });
         builder.setNegativeButton("Hủy", null);
@@ -652,7 +652,7 @@ public class ProfileActivity extends BaseActivity {
                 int pending = dbHelper.getPendingCount();
                 if (pending > 0) {
                     new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                            .setTitle("⚠️ Còn dữ liệu chưa đồng bộ")
+                            .setTitle("Còn dữ liệu chưa đồng bộ")
                             .setMessage("Bạn còn " + pending + " thao tác (bình luận, lượt thích, bài đăng...) chưa được gửi lên máy chủ vì đang mất mạng."
                                     + "\n\nNếu đăng xuất bây giờ, các thao tác này sẽ bị mất. Hãy kết nối mạng để ứng dụng tự đồng bộ trước khi đăng xuất.")
                             .setPositiveButton("Ở lại", null)

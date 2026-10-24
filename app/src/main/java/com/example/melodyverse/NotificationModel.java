@@ -74,7 +74,7 @@ public class NotificationModel {
             case TYPE_NEW_POST:
                 return actorName + " vừa chia sẻ bài hát mới “" + songTitle + "”";
             default:
-                return "Chào mừng " + actorName + " đến với MelodyVerse! 🎵";
+                return "Chào mừng " + actorName + " đến với MelodyVerse!";
         }
     }
 }

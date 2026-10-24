@@ -333,7 +333,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
         }
     }
 
-    /** Dữ liệu trong SQLite vừa thay đổi do đồng bộ (ví dụ bình luận 🕒 đã gửi xong). */
+    /** Dữ liệu trong SQLite vừa thay đổi do đồng bộ (ví dụ bình luận nhãn chờ đã gửi xong). */
     protected void onLocalDataChanged() {}
 
     /** Có mạng trở lại và đã đẩy xong dữ liệu chờ: tải lại trang hiện tại từ Firebase. */

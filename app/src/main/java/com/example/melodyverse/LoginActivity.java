@@ -110,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(this, "Chào mừng đến với MelodyVerse! 🎵", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Chào mừng đến với MelodyVerse!", Toast.LENGTH_SHORT).show();
                     openHome(result.isAdmin, result.username, result.needsOnboarding);
                 }
             });
@@ -127,7 +127,7 @@ public class LoginActivity extends AppCompatActivity {
                         .setPositiveButton("Đã hiểu", null)
                         .show();
             } else {
-                Toast.makeText(this, "Chào mừng đến với MelodyVerse! 🎵", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Chào mừng đến với MelodyVerse!", Toast.LENGTH_SHORT).show();
                 openHome(result.isAdmin, result.username, result.needsOnboarding);
             }
         });
@@ -136,7 +136,7 @@ public class LoginActivity extends AppCompatActivity {
         String message = getIntent().getStringExtra(EXTRA_MESSAGE);
         if (message != null) {
             new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                    .setTitle("⚠️ Phiên đăng nhập đã kết thúc")
+                    .setTitle("Phiên đăng nhập đã kết thúc")
                     .setMessage(message)
                     .setPositiveButton("Đã hiểu", null)
                     .show();
@@ -154,7 +154,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void showLockedDialog(String accountUsername) {
         new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                .setTitle("⚠️ Tài Khoản Đã Bị Khóa")
+                .setTitle("Tài Khoản Đã Bị Khóa")
                 .setMessage("Tài khoản @" + accountUsername + " đã bị Quản trị viên tạm thời khóa do vi phạm tiêu chuẩn cộng đồng MelodyVerse.\n\nVui lòng liên hệ ban quản trị để được hỗ trợ mở khóa.")
                 .setPositiveButton("Đã hiểu", null)
                 .show();

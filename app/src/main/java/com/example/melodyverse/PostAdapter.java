@@ -69,8 +69,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         // Đổ dữ liệu văn bản
         holder.tvAuthor.setText(post.getAuthorName());
         holder.tvUsername.setText(" • @" + post.getAuthorUsername());
-        // Bài đăng lúc offline: hiện 🕒 cho tới khi đã lên Firebase
-        holder.tvTime.setText(post.isPendingSync() ? "🕒 Chờ có mạng để đăng" : post.getTimeAgo());
+        // Bài đăng lúc offline: hiện nhãn chờ cho tới khi đã lên Firebase
+        holder.tvTime.setText(post.isPendingSync() ? "Chờ có mạng để đăng" : post.getTimeAgo());
         holder.tvCaption.setText(post.getCaption());
         holder.tvSongTitle.setText(post.getSongTitle());
         holder.tvSongArtist.setText(post.getArtistName());
@@ -173,7 +173,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
             // Lưu ngay vào SQLite, SyncManager tự đẩy lên Firebase
             dbHelper.updatePostLike(post.getId(), newLiked, post.getLikeCount());
-            // 🕒 = đã lưu trên máy, chờ Firebase xác nhận (đồng bộ xong thì màn hình đọc lại và bỏ 🕒)
+            // nhãn chờ = đã lưu trên máy, chờ Firebase xác nhận (đồng bộ xong thì màn hình đọc lại và bỏ nhãn chờ)
             PostModel saved = dbHelper.getPostById(post.getId());
             post.setLikePending(saved != null && saved.isLikePending());
             holder.tvLikeCount.setText(likeCountText(post));
@@ -313,9 +313,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         });
     }
 
-    /** Số tim kèm 🕒 khi lượt thích / bỏ thích của mình chưa được Firebase xác nhận. */
+    /** Số tim kèm nhãn chờ khi lượt thích / bỏ thích của mình chưa được Firebase xác nhận. */
     static String likeCountText(PostModel post) {
-        return post.getLikeCount() + (post.isLikePending() ? " 🕒" : "");
+        return post.getLikeCount() + (post.isLikePending() ? " (chờ)" : "");
     }
 
     private static final int MENU_EDIT = 1;
@@ -340,7 +340,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                     boolean online = SyncManager.get(context).isOnline();
                     Toast.makeText(context, online
                             ? "Đã xóa bài viết"
-                            : "🕒 Đã xóa trên máy — sẽ xóa trên hệ thống khi có mạng", Toast.LENGTH_SHORT).show();
+                            : "Đã xóa trên máy — sẽ xóa trên hệ thống khi có mạng", Toast.LENGTH_SHORT).show();
                     if (onDeleted != null) onDeleted.run();
                 })
                 .setNegativeButton("Hủy", null)

@@ -35,7 +35,7 @@ public class SimilarPostAdapter extends RecyclerView.Adapter<SimilarPostAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         PostModel post = posts.get(position);
         holder.tvTitle.setText(post.getSongTitle());
-        holder.tvMeta.setText(post.getArtistName() + " • " + post.getGenre() + " • ❤ " + post.getLikeCount());
+        holder.tvMeta.setText(post.getArtistName() + " • " + post.getGenre() + " • " + post.getLikeCount() + " lượt thích");
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, PostDetailActivity.class);
             intent.putExtra(PostDetailActivity.EXTRA_POST_ID, post.getId());

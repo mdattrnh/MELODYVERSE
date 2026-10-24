@@ -104,7 +104,7 @@ public class PostModel {
     public void setSyncStatus(String syncStatus) { this.syncStatus = syncStatus; }
     public boolean isPendingSync() { return SyncStatus.PENDING.equals(syncStatus); }
 
-    /** Lượt thích / bỏ thích của mình mới lưu trên máy, Firebase chưa xác nhận (hiện 🕒 cạnh số tim). */
+    /** Lượt thích / bỏ thích của mình mới lưu trên máy, Firebase chưa xác nhận (hiện nhãn chờ cạnh số tim). */
     private boolean likePending = false;
     public boolean isLikePending() { return likePending; }
     public void setLikePending(boolean likePending) { this.likePending = likePending; }

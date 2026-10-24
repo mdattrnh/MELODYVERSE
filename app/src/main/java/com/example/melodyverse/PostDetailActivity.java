@@ -272,7 +272,7 @@ public class PostDetailActivity extends BaseActivity {
 
     @Override
     protected void onLocalDataChanged() {
-        // Bình luận 🕒 vừa gửi xong / có thay đổi realtime từ Firebase -> đọc lại SQLite
+        // Bình luận nhãn chờ vừa gửi xong / có thay đổi realtime từ Firebase -> đọc lại SQLite
         if (post == null || closingUnavailable) return;
         if (dbHelper.getPostById(postId) == null) {
             if (SyncStatus.PENDING_DELETE.equals(dbHelper.getPostSyncStatus(postId))) {
@@ -396,7 +396,7 @@ public class PostDetailActivity extends BaseActivity {
                 updateLikeUi();
 
                 dbHelper.updatePostLike(post.getId(), newLiked, post.getLikeCount());
-                // 🕒 = mới lưu trên máy, chờ Firebase xác nhận (tự mất khi đồng bộ xong)
+                // nhãn chờ = mới lưu trên máy, chờ Firebase xác nhận (tự mất khi đồng bộ xong)
                 PostModel saved = dbHelper.getPostById(post.getId());
                 post.setLikePending(saved != null && saved.isLikePending());
                 tvLikeCount.setText(PostAdapter.likeCountText(post));
@@ -459,7 +459,7 @@ public class PostDetailActivity extends BaseActivity {
             return;
         }
 
-        // Lưu ngay vào SQLite (PENDING 🕒) rồi SyncManager tự gửi lên Firebase (ngay lập tức nếu đang có mạng)
+        // Lưu ngay vào SQLite (PENDING nhãn chờ) rồi SyncManager tự gửi lên Firebase (ngay lập tức nếu đang có mạng)
         boolean online = SyncManager.get(this).isOnline();
         boolean success = dbHelper.addComment(post.getId(), dbHelper.getUser(SessionManager.getCurrentUsername(this)).getFullName(), content) != null;
         if (success) {
@@ -485,7 +485,7 @@ public class PostDetailActivity extends BaseActivity {
 
             Toast.makeText(this, online
                     ? "Đang gửi bình luận của bạn..."
-                    : "🕒 Đang offline — bình luận đã được lưu và sẽ tự gửi khi có mạng", Toast.LENGTH_SHORT).show();
+                    : "Đang offline — bình luận đã được lưu và sẽ tự gửi khi có mạng", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Có lỗi xảy ra, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
         }
@@ -562,7 +562,7 @@ public class PostDetailActivity extends BaseActivity {
         }
         if (tvCommentsEmpty != null) {
             tvCommentsEmpty.setText(noOfflineComments
-                    ? "📴 Chưa có dữ liệu bình luận ngoại tuyến. Vui lòng kết nối mạng để tải bình luận."
+                    ? "Chưa có dữ liệu bình luận ngoại tuyến. Vui lòng kết nối mạng để tải bình luận."
                     : "Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ cảm nghĩ!");
             tvCommentsEmpty.setVisibility(count == 0 || noOfflineComments ? View.VISIBLE : View.GONE);
         }

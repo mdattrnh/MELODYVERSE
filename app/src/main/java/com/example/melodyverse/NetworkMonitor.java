@@ -83,13 +83,13 @@ public class NetworkMonitor {
             wasOffline = true;
             if (isWarningEnabled(appContext)) {
                 Toast.makeText(appContext,
-                        "⚠ Mất kết nối Internet! Thao tác của bạn sẽ được lưu trên máy và tự đồng bộ khi có mạng.",
+                        "Mất kết nối Internet! Thao tác của bạn sẽ được lưu trên máy và tự đồng bộ khi có mạng.",
                         Toast.LENGTH_LONG).show();
             }
             // Nhạc trực tuyến không thể phát tiếp khi mất mạng; nhạc mẫu trong APK vẫn phát bình thường
             if (MusicService.isPlaying && MusicService.isStreamingCurrent()) {
                 MusicService.pause(appContext);
-                Toast.makeText(appContext, "📴 Đã tạm dừng nhạc trực tuyến do mất kết nối mạng.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(appContext, "Đã tạm dừng nhạc trực tuyến do mất kết nối mạng.", Toast.LENGTH_SHORT).show();
             }
         }, 800);
     }
@@ -98,7 +98,7 @@ public class NetworkMonitor {
         if (!wasOffline) return;
         wasOffline = false;
         if (isWarningEnabled(appContext)) {
-            Toast.makeText(appContext, "✓ Đã kết nối lại Internet — đang đồng bộ dữ liệu...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(appContext, "Đã kết nối lại Internet — đang đồng bộ dữ liệu...", Toast.LENGTH_SHORT).show();
         }
         // Tự động đẩy dữ liệu chờ lên Firebase rồi làm mới màn hình đang mở
         SyncManager.get(appContext).onReconnected();

@@ -677,7 +677,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // đánh dấu PENDING rồi nhờ SyncManager đẩy lên Firebase khi có mạng
     // ===================================================================================
 
-    /** Đăng bài mới. Bài xuất hiện ngay trên Bảng tin và Hồ sơ, kèm 🕒 cho tới khi lên Firebase. */
+    /** Đăng bài mới. Bài xuất hiện ngay trên Bảng tin và Hồ sơ, kèm nhãn chờ cho tới khi lên Firebase. */
     public boolean insertPost(PostModel post) {
         SQLiteDatabase db = getWritableDatabase();
         long now = System.currentTimeMillis();

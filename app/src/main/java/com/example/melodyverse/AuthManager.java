@@ -329,7 +329,7 @@ public class AuthManager {
         data.put("username", username);
         data.put("fullName", fullName);
         data.put("role", "Thành viên mới");
-        data.put("bio", "Xin chào! Mình vừa tham gia MelodyVerse. Cùng chia sẻ âm nhạc nhé! 🎵");
+        data.put("bio", "Xin chào! Mình vừa tham gia MelodyVerse. Cùng chia sẻ âm nhạc nhé!");
         data.put("avatarIndex", (long) avatarIndex);
         data.put("email", email);
         data.put("isLocked", false);

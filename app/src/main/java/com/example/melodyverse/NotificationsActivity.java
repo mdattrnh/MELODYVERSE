@@ -72,7 +72,7 @@ public class NotificationsActivity extends BaseActivity {
             if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             renderList();
             if (userInitiated && status == SyncManager.Status.OFFLINE) {
-                Toast.makeText(this, "📴 Đang offline — hiển thị thông báo đã lưu trên máy", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Đang offline — hiển thị thông báo đã lưu trên máy", Toast.LENGTH_SHORT).show();
             } else if (userInitiated && status == SyncManager.Status.ERROR) {
                 Toast.makeText(this, "Không tải được thông báo mới. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
             }
@@ -188,19 +188,19 @@ public class NotificationsActivity extends BaseActivity {
             case NotificationModel.TYPE_LIKE:
                 title = n.getActorName() + " đã thích bài viết của bạn";
                 message = n.getActorName() + " đã thả tim cho bài hát “" + n.getSongTitle() + "” bạn chia sẻ trên MelodyVerse.";
-                actionText = "Phát bài hát này 🎵";
+                actionText = "Phát bài hát này";
                 action = () -> openPost(n, false, true);
                 break;
             case NotificationModel.TYPE_COMMENT:
                 title = n.getActorName() + " đã bình luận về bài viết của bạn";
                 message = n.getActorName() + ": “" + n.getPreview() + "”\nBài viết: “" + n.getSongTitle() + "”";
-                actionText = "Xem bình luận 💬";
+                actionText = "Xem bình luận";
                 action = () -> openPost(n, true, false);
                 break;
             case NotificationModel.TYPE_FOLLOW:
                 title = n.getActorName() + " đã theo dõi bạn";
                 message = "@" + n.getActor() + " vừa bắt đầu theo dõi bạn trên MelodyVerse. Ghé thăm hồ sơ để xem các bài hát họ chia sẻ!";
-                actionText = "Xem hồ sơ 👤";
+                actionText = "Xem hồ sơ";
                 action = () -> {
                     Intent intent = new Intent(this, ProfileActivity.class);
                     intent.putExtra(ProfileActivity.EXTRA_USERNAME, n.getActor());
@@ -210,13 +210,13 @@ public class NotificationsActivity extends BaseActivity {
             case NotificationModel.TYPE_NEW_POST:
                 title = n.getActorName() + " vừa chia sẻ bài hát mới";
                 message = "“" + n.getSongTitle() + "” vừa được đăng trên MelodyVerse. Nghe ngay nhé!";
-                actionText = "Nghe bài hát 🎵";
+                actionText = "Nghe bài hát";
                 action = () -> openPost(n, false, true);
                 break;
             default:
                 title = "Chào mừng đến với MelodyVerse!";
                 message = "Tài khoản của bạn đã sẵn sàng. Khám phá các bài hát đang thịnh hành và chia sẻ âm nhạc bạn yêu thích.";
-                actionText = "Khám phá âm nhạc 🚀";
+                actionText = "Khám phá âm nhạc";
                 action = () -> {
                     Intent intent = new Intent(this, DiscoverActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -273,7 +273,7 @@ public class NotificationsActivity extends BaseActivity {
             return;
         }
         if (dbHelper.getPostById(n.getPostId()) == null && !SyncManager.get(this).isOnline()) {
-            Toast.makeText(this, "📴 Bài viết chưa được lưu để xem offline. Vui lòng kết nối mạng!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Bài viết chưa được lưu để xem offline. Vui lòng kết nối mạng!", Toast.LENGTH_SHORT).show();
             return;
         }
         Intent intent = new Intent(this, PostDetailActivity.class);

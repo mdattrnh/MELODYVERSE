@@ -88,7 +88,7 @@ public class RegisterActivity extends AppCompatActivity {
         // Đăng ký nhanh bằng Google: tạo hồ sơ (hoặc dùng hồ sơ đã có) rồi vào thẳng ứng dụng
         new GoogleSignInHelper(this, result -> {
             if (result.status == AuthManager.Status.OK) {
-                Toast.makeText(this, "Chào mừng đến với MelodyVerse! 🎵", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Chào mừng đến với MelodyVerse!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(this, result.isAdmin ? AdminActivity.class : MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 if (!result.isAdmin && AuthManager.shouldShowOnboarding(this, result.username, result.needsOnboarding)) {
@@ -203,7 +203,7 @@ public class RegisterActivity extends AppCompatActivity {
                 Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
                 return;
             }
-            Toast.makeText(this, "Đăng ký thành công! Hãy đăng nhập để bắt đầu trải nghiệm 🎵", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Đăng ký thành công! Hãy đăng nhập để bắt đầu trải nghiệm", Toast.LENGTH_LONG).show();
 
             // Trả thông tin về LoginActivity để người dùng bấm Đăng nhập
             Intent resultIntent = new Intent();

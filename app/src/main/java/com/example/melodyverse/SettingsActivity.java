@@ -92,8 +92,8 @@ public class SettingsActivity extends AppCompatActivity {
                 recreate();
 
                 Toast.makeText(this,
-                        isChecked ? "✨ Đã kích hoạt Chế độ tối Galaxy (Nền tối, chữ trắng nổi bật)"
-                                : "☀ Đã chuyển về Chế độ sáng ngọc trai (Light Mode)",
+                        isChecked ? "Đã kích hoạt Chế độ tối Galaxy (Nền tối, chữ trắng nổi bật)"
+                                : "Đã chuyển về Chế độ sáng ngọc trai (Light Mode)",
                         Toast.LENGTH_SHORT).show();
             });
         }
@@ -103,8 +103,8 @@ public class SettingsActivity extends AppCompatActivity {
             switchAutoNext.setOnCheckedChangeListener((btn, isChecked) -> {
                 prefs.edit().putBoolean("auto_next", isChecked).apply();
                 Toast.makeText(this,
-                        isChecked ? "✓ Tự động phát ca khúc tiếp theo trong CSDL SQLite khi hết bài"
-                                : "✕ Đã tắt tự động chuyển bài — sẽ tạm dừng khi phát hết bài",
+                        isChecked ? "Tự động phát ca khúc tiếp theo trong CSDL SQLite khi hết bài"
+                                : "Đã tắt tự động chuyển bài — sẽ tạm dừng khi phát hết bài",
                         Toast.LENGTH_SHORT).show();
             });
         }
@@ -120,10 +120,10 @@ public class SettingsActivity extends AppCompatActivity {
                                 MusicService.currentArtistName,
                                 true);
                     }
-                    Toast.makeText(this, "✓ Đã bật thanh thông báo phát nhạc", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đã bật thanh thông báo phát nhạc", Toast.LENGTH_SHORT).show();
                 } else {
                     NotificationHelper.cancelMusicNotification(this);
-                    Toast.makeText(this, "✕ Đã tắt thanh thông báo điều khiển nhạc", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đã tắt thanh thông báo điều khiển nhạc", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -135,11 +135,11 @@ public class SettingsActivity extends AppCompatActivity {
                 // NetworkMonitor luôn chạy để tự đồng bộ dữ liệu; công tắc này chỉ bật / tắt phần cảnh báo
                 if (isChecked) {
                     Toast.makeText(this,
-                            "✓ Đã bật cảnh báo khi mất kết nối mạng trên toàn ứng dụng",
+                            "Đã bật cảnh báo khi mất kết nối mạng trên toàn ứng dụng",
                             Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this,
-                            "✕ Đã tắt cảnh báo mất mạng (dữ liệu vẫn tự đồng bộ khi có mạng)",
+                            "Đã tắt cảnh báo mất mạng (dữ liệu vẫn tự đồng bộ khi có mạng)",
                             Toast.LENGTH_SHORT).show();
                 }
             });

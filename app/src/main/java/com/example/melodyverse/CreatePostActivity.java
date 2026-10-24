@@ -249,9 +249,9 @@ public class CreatePostActivity extends BaseActivity {
             );
 
             String toastMsg = !online
-                    ? "🕒 Đang offline — bài viết đã được lưu và sẽ tự đăng khi có mạng trở lại."
+                    ? "Đang offline — bài viết đã được lưu và sẽ tự đăng khi có mạng trở lại."
                     : isPrivate
-                    ? "Đã đăng bài viết Riêng tư 🔒 Chỉ mình bạn nhìn thấy bài này (trên Bảng tin và Hồ sơ của bạn)."
+                    ? "Đã đăng bài viết Riêng tư. Chỉ mình bạn nhìn thấy bài này (trên Bảng tin và Hồ sơ của bạn)."
                     : "Đã đăng bài viết Công khai lên Bảng tin MelodyVerse!";
             Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
 
@@ -344,7 +344,7 @@ public class CreatePostActivity extends BaseActivity {
         boolean online = SyncManager.get(this).isOnline();
         Toast.makeText(this, online
                 ? "Đã lưu thay đổi bài viết"
-                : "🕒 Đang offline — thay đổi đã lưu và sẽ tự cập nhật khi có mạng", Toast.LENGTH_SHORT).show();
+                : "Đang offline — thay đổi đã lưu và sẽ tự cập nhật khi có mạng", Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -379,7 +379,7 @@ public class CreatePostActivity extends BaseActivity {
                     results.addAll(tracks);
                     adapter.clear();
                     for (AudiusApi.Track t : tracks) {
-                        adapter.add("🎵 " + t.title + "\n" + t.artist + " • " + t.getDurationText());
+                        adapter.add(t.title + "\n" + t.artist + " • " + t.getDurationText());
                     }
                     adapter.notifyDataSetChanged();
                     tvStatus.setText(tracks.isEmpty()
@@ -465,7 +465,7 @@ public class CreatePostActivity extends BaseActivity {
     private void applyPrivacy(boolean makePrivate) {
         isPrivate = makePrivate;
         updatePrivacyUi();
-        String modeMsg = isPrivate ? "Đã chuyển sang chế độ: Riêng tư 🔒" : "Đã chuyển sang chế độ: Công khai 🌐";
+        String modeMsg = isPrivate ? "Đã chuyển sang chế độ: Riêng tư" : "Đã chuyển sang chế độ: Công khai";
         Toast.makeText(this, modeMsg, Toast.LENGTH_SHORT).show();
     }
 

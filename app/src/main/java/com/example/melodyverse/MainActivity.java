@@ -295,7 +295,7 @@ public class MainActivity extends BaseActivity {
                 if (status == SyncManager.Status.OK) {
                     Toast.makeText(this, "Đã cập nhật bảng tin mới nhất", Toast.LENGTH_SHORT).show();
                 } else if (status == SyncManager.Status.OFFLINE) {
-                    Toast.makeText(this, "📴 Đang offline — đang hiển thị dữ liệu đã lưu trên máy", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đang offline — đang hiển thị dữ liệu đã lưu trên máy", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Không tải được bảng tin mới. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
                 }
@@ -394,7 +394,7 @@ public class MainActivity extends BaseActivity {
             }
             AuthManager.markOnboardingDone(this, me);
             dialog.dismiss();
-            Toast.makeText(this, "Đã theo dõi " + count + " nghệ sĩ 🎵", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Đã theo dõi " + count + " nghệ sĩ!", Toast.LENGTH_SHORT).show();
         });
         dialog.show();
     }
@@ -429,12 +429,12 @@ public class MainActivity extends BaseActivity {
         } else if (isOfflineMode) {
             String key = activeGenreLabel.isEmpty() ? DatabaseHelper.FEED_HOME : DatabaseHelper.feedGenre(activeGenreLabel);
             long updatedAt = dbHelper.getFeedUpdatedAt(key);
-            text = "📴 Đang offline — hiển thị dữ liệu đã lưu"
+            text = "Đang offline — hiển thị dữ liệu đã lưu"
                     + (updatedAt > 0 ? " (cập nhật " + DatabaseHelper.formatTimeAgo(updatedAt).toLowerCase() + ")" : "");
         } else if (isLoadingMore) {
             text = "Đang tải thêm bài viết...";
         } else if (activeGenreLabel.isEmpty() && !hasMoreHome && !postList.isEmpty()) {
-            text = "Bạn đã xem hết bài viết mới 🎵";
+            text = "Bạn đã xem hết bài viết mới";
         }
         tvFeedFooter.setVisibility(text == null ? View.GONE : View.VISIBLE);
         if (text != null) tvFeedFooter.setText(text);

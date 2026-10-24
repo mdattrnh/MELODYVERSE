@@ -317,7 +317,7 @@
                 android:paddingTop="10dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="10dp"
-                android:text="ℹ️ Các bài viết, bình luận và hồ sơ gắn nhãn &quot;Minh họa&quot; là dữ liệu mẫu do MelodyVerse nạp sẵn để trình diễn. Các nghệ sĩ mẫu không có tài khoản đăng nhập thật. Nội dung bạn đăng, thích, bình luận, theo dõi đều được lưu vào tài khoản của bạn. (Chạm để ẩn)"
+                android:text="Các bài viết, bình luận và hồ sơ gắn nhãn &quot;Minh họa&quot; là dữ liệu mẫu do MelodyVerse nạp sẵn để trình diễn. Các nghệ sĩ mẫu không có tài khoản đăng nhập thật. Nội dung bạn đăng, thích, bình luận, theo dõi đều được lưu vào tài khoản của bạn. (Chạm để ẩn)"
                 android:textColor="@color/colorTextSecondary"
                 android:textSize="12sp"
                 android:visibility="gone" />

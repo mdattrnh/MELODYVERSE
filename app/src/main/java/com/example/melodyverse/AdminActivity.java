@@ -234,7 +234,7 @@ public class AdminActivity extends BaseActivity {
             } else if (status == SyncManager.Status.ERROR) {
                 Toast.makeText(this, "Lỗi tải dữ liệu quản trị — kiểm tra Firestore Rules / kết nối Firebase (xem Logcat)", Toast.LENGTH_LONG).show();
             } else if (status == SyncManager.Status.OFFLINE) {
-                Toast.makeText(this, "📴 Đang offline — hiển thị dữ liệu đã lưu trên máy", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Đang offline — hiển thị dữ liệu đã lưu trên máy", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -406,7 +406,7 @@ public class AdminActivity extends BaseActivity {
             tvEmpty.setText("Không tìm thấy người dùng phù hợp");
         } else {
             tvEmpty.setVisibility(reportList.isEmpty() ? View.VISIBLE : View.GONE);
-            tvEmpty.setText("✓ Không có bài viết vi phạm nào cần xử lý");
+            tvEmpty.setText("Không có bài viết vi phạm nào cần xử lý");
         }
     }
 

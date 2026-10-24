@@ -340,7 +340,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                 if (p == mediaPlayer) {
                     streamFailed(SyncManager.get(this).isOnline()
                             ? "Không phát được nhạc trực tuyến (link lỗi hoặc máy chủ không phản hồi)."
-                            : "📴 Mất kết nối mạng — đã dừng phát nhạc trực tuyến. Hãy kết nối lại rồi bấm phát.");
+                            : "Mất kết nối mạng — đã dừng phát nhạc trực tuyến. Hãy kết nối lại rồi bấm phát.");
                 }
                 return true;
             });
@@ -620,7 +620,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             int dur = getDuration();
             int pos = getCurrentPosition();
             if (dur <= 0 || pos < dur - 2000) {
-                streamFailed("📴 Mất kết nối mạng — đã dừng phát nhạc trực tuyến. Hãy kết nối lại rồi bấm phát.");
+                streamFailed("Mất kết nối mạng — đã dừng phát nhạc trực tuyến. Hãy kết nối lại rồi bấm phát.");
                 return;
             }
         }

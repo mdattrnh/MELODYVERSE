@@ -59,7 +59,7 @@ public class SyncManager {
 
     private static final String TAG = "SyncManager";
 
-    /** Đã đẩy xong thao tác chờ → màn hình nên đọc lại SQLite (đổi icon 🕒 thành bình thường). */
+    /** Đã đẩy xong thao tác chờ → màn hình nên đọc lại SQLite (đổi nhãn chờ thành bình thường). */
     public static final String EVENT_DATA_CHANGED = "data_changed";
     /** Có mạng trở lại và đã đẩy xong → màn hình đang mở nên tải lại từ Firebase. */
     public static final String EVENT_RECONNECTED = "reconnected";

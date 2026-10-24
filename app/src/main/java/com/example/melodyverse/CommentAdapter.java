@@ -53,12 +53,12 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         CommentModel comment = commentList.get(position);
 
         holder.tvAuthor.setText(comment.getAuthorName());
-        // Bình luận viết lúc offline: 🕒 chờ mạng; Firebase từ chối (bài đã bị xóa): ⚠
+        // Bình luận viết lúc offline: nhãn "Đang chờ kết nối mạng"; Firebase từ chối (bài đã bị xóa): nhãn "Không gửi được"
         if (comment.isPending()) {
-            holder.tvTime.setText(" • 🕒 Đang chờ kết nối mạng");
+            holder.tvTime.setText(" • Đang chờ kết nối mạng");
             holder.tvTime.setTextColor(ContextCompat.getColor(context, R.color.colorGold));
         } else if (comment.isFailed()) {
-            holder.tvTime.setText(" • ⚠ Không gửi được (bài viết đã bị xóa)");
+            holder.tvTime.setText(" • Không gửi được (bài viết đã bị xóa)");
             holder.tvTime.setTextColor(ContextCompat.getColor(context, R.color.colorNeonPink));
         } else {
             holder.tvTime.setText(" • " + comment.getTimeAgo());
