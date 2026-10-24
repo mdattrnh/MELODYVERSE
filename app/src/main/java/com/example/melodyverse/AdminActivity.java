@@ -40,6 +40,8 @@ public class AdminActivity extends BaseActivity {
     private final Map<String, SyncManager.ReportedPost> reportInfo = new HashMap<>();
     private final List<UserModel> userList = new ArrayList<>();
     private final List<UserModel> allUserList = new ArrayList<>();
+    /** Kênh lắng nghe realtime collection reports (mở khi màn hình hiển thị, đóng khi rời màn hình). */
+    private com.google.firebase.firestore.ListenerRegistration reportsReg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,7 +173,34 @@ public class AdminActivity extends BaseActivity {
         if (miniPlayerContainer != null && !MusicService.isPlaying) {
             miniPlayerContainer.setVisibility(View.GONE);
         }
-        if (sync != null) loadDashboardData();
+        if (sync != null) {
+            loadDashboardData();
+            // Báo cáo vi phạm cập nhật theo thời gian thực (xử lý / xóa trên Console hoặc bởi Quản trị viên khác)
+            if (reportsReg == null) reportsReg = sync.watchReports(this::applyReports);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (reportsReg != null) {
+            reportsReg.remove();
+            reportsReg = null;
+        }
+    }
+
+    /** Danh sách bài vi phạm mới nhất từ Firebase: cập nhật danh sách và thẻ thống kê ngay lập tức. */
+    private void applyReports(List<SyncManager.ReportedPost> reports) {
+        if (isFinishing() || isDestroyed() || reportsReg == null) return;
+        reportInfo.clear();
+        reportList.clear();
+        for (SyncManager.ReportedPost r : reports) {
+            reportInfo.put(r.post.getId(), r);
+            reportList.add(r.post);
+        }
+        if (tvStatReports != null) tvStatReports.setText(String.valueOf(reportList.size()));
+        reportAdapter.notifyDataSetChanged();
+        updateEmptyState();
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -1297,6 +1298,54 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } finally {
             db.endTransaction();
         }
+    }
+
+    /**
+     * Realtime: đồng bộ lượt thích / bản nhạc đã lưu (đã đồng bộ) của {@code username} với đúng danh sách trên Firebase.
+     * Bản ghi SYNCED không còn trên Firebase (ví dụ bị xóa trên Console) thì xóa; bản ghi mới thì thêm.
+     * Thao tác đang chờ gửi (PENDING / PENDING_DELETE) được giữ nguyên.
+     *
+     * @param tracks thông tin bản nhạc theo postId (chỉ dùng cho bảng bookmarks, có thể thiếu)
+     * @return true nếu SQLite có thay đổi
+     */
+    public boolean replaceSyncedRelations(String table, String username, Set<String> activePostIds, Map<String, PostModel> tracks) {
+        SQLiteDatabase db = getWritableDatabase();
+        String user = norm(username);
+        if (user.isEmpty()) return false;
+        boolean bookmarks = TABLE_BOOKMARKS.equals(table);
+        boolean changed = false;
+        db.beginTransaction();
+        try {
+            List<String> stale = new ArrayList<>();
+            Cursor c = db.query(table, new String[]{COL_R_POST_ID}, COL_R_USERNAME + " = ? AND " + COL_SYNC_STATUS + " = ?",
+                    new String[]{user, SyncStatus.SYNCED}, null, null, null);
+            while (c.moveToNext()) {
+                if (!activePostIds.contains(c.getString(0))) stale.add(c.getString(0));
+            }
+            c.close();
+            for (String postId : stale) {
+                db.delete(table, COL_R_USERNAME + " = ? AND " + COL_R_POST_ID + " = ? AND " + COL_SYNC_STATUS + " = ?",
+                        new String[]{user, postId, SyncStatus.SYNCED});
+                changed = true;
+            }
+            for (String postId : activePostIds) {
+                PostModel track = tracks != null ? tracks.get(postId) : null;
+                ContentValues cv = new ContentValues();
+                cv.put(COL_R_USERNAME, user);
+                cv.put(COL_R_POST_ID, postId);
+                cv.put(COL_CREATED_AT, track != null && track.getCreatedAt() > 0 ? track.getCreatedAt() : System.currentTimeMillis());
+                cv.put(COL_SYNC_STATUS, SyncStatus.SYNCED);
+                if (db.insertWithOnConflict(table, null, cv, SQLiteDatabase.CONFLICT_IGNORE) != -1) changed = true;
+                if (bookmarks && track != null) {
+                    db.update(table, savedTrackValues(track), COL_R_USERNAME + " = ? AND " + COL_R_POST_ID + " = ? AND "
+                            + COL_B_SONG_TITLE + " IS NULL", new String[]{user, postId});
+                }
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        return changed;
     }
 
     /**

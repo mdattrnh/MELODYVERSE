@@ -346,6 +346,19 @@
                 android:textColorHint="@color/colorInputHint"
                 android:textSize="15sp" />
 
+            <!-- Cảnh báo liên kết âm thanh không hợp lệ (hiện ngay dưới ô nhập) -->
+            <TextView
+                android:id="@+id/tv_music_url_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-4dp"
+                android:layout_marginBottom="10dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:textColor="@color/colorDanger"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
             <!-- Tìm nhạc trên Audius -->
             <TextView
                 android:id="@+id/btn_search_audius"

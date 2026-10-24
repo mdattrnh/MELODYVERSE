@@ -76,6 +76,11 @@ public class SyncManager {
         void onDone(Status status, boolean hasMore);
     }
 
+    /** Danh sách bài bị báo cáo vi phạm cập nhật theo thời gian thực (trang Quản trị). */
+    public interface ReportsListener {
+        void onReports(List<ReportedPost> reports);
+    }
+
     public interface AdminDataCallback {
         void onDone(Status status, List<PostModel> posts, List<UserModel> users, List<ReportedPost> reports);
     }
@@ -130,6 +135,8 @@ public class SyncManager {
     // Realtime listeners (Firestore addSnapshotListener)
     private ListenerRegistration postsReg, meReg, notifReg, watchedPostReg, watchedCommentsReg;
     private ListenerRegistration followingReg, followersReg;
+    /** Lượt thả tim / bản nhạc đã lưu của tài khoản đang đăng nhập (xóa trên Console là máy cập nhật ngay). */
+    private ListenerRegistration likesReg, bookmarksReg;
     /**
      * Bài thêm thẳng trên Firebase Console mà thiếu trường createdAt (truy vấn orderBy("createdAt") bỏ qua các bài này):
      * realtime vẫn nhận được và giữ lại để lần tải lại bảng tin không làm mất bài.
@@ -568,6 +575,7 @@ public class SyncManager {
             }
             if (post == null || !isVisible(post)) {
                 db.removePostLocal(postId);
+                onPostUnavailable(postId);
                 return Status.NOT_FOUND;
             }
             QuerySnapshot cs = await(ref.collection(C_COMMENTS)
@@ -899,6 +907,13 @@ public class SyncManager {
         followersReg = fs.collection(C_FOLLOWS).whereEqualTo("following", me)
                 .addSnapshotListener(executor, (snap, e) -> onFollowsSnapshot(me, false, snap, e));
 
+        // Lượt thả tim của mình: document bị xóa / thêm trên Firebase Console thì icon tim trên mọi màn hình đổi theo
+        likesReg = fs.collection(C_LIKES).whereEqualTo("username", me)
+                .addSnapshotListener(executor, (snap, e) -> onMyRelationsSnapshot(me, false, snap, e));
+        // Bản nhạc đã lưu của mình: gỡ trên Console thì icon Bookmark và tab Danh sách nhạc đã lưu cập nhật ngay
+        bookmarksReg = fs.collection(C_BOOKMARKS).whereEqualTo("username", me)
+                .addSnapshotListener(executor, (snap, e) -> onMyRelationsSnapshot(me, true, snap, e));
+
         // Hồ sơ của mình: Admin khóa tài khoản / đổi vai trò, sửa tên trên Console
         meReg = fs.collection(C_USERS).document(me)
                 .addSnapshotListener(executor, (doc, e) -> {
@@ -940,6 +955,44 @@ public class SyncManager {
         emit(EVENT_DATA_CHANGED);
     }
 
+    /**
+     * Realtime lượt thích / bản nhạc đã lưu của tài khoản đang đăng nhập: thay các bản ghi ĐÃ ĐỒNG BỘ trong SQLite
+     * bằng đúng danh sách trên Firebase (thao tác đang chờ gửi được giữ nguyên).
+     * Bỏ qua ảnh chụp từ bộ nhớ tạm của Firestore (chưa xác nhận với máy chủ, ví dụ lúc mất mạng trả về rỗng).
+     */
+    private void onMyRelationsSnapshot(String me, boolean bookmarks, QuerySnapshot snap, FirebaseFirestoreException e) {
+        if (e != null) {
+            Log.w(TAG, "Realtime " + (bookmarks ? "nhạc đã lưu" : "lượt thích") + " lỗi: " + e.getMessage());
+            return;
+        }
+        if (snap == null || snap.getMetadata().isFromCache() || !isSignedIn() || !me.equals(me())) return;
+        Set<String> ids = new LinkedHashSet<>();
+        Map<String, PostModel> tracks = new HashMap<>();
+        for (DocumentSnapshot d : snap.getDocuments()) {
+            String postId = str(d, "postId");
+            if (postId.isEmpty()) continue;
+            ids.add(postId);
+            if (bookmarks && !str(d, "songTitle").isEmpty()) {
+                PostModel t = new PostModel(postId, "", "", "", "", str(d, "songTitle"), str(d, "artistName"),
+                        str(d, "musicUrl"), str(d, "genre"), "", 0, 0, 0, false, true, db.audioResId(str(d, "audioRes")));
+                t.setCreatedAt(num(d, "createdAt"));
+                tracks.put(postId, t);
+            }
+        }
+        if (db.replaceSyncedRelations(bookmarks ? DatabaseHelper.TABLE_BOOKMARKS : DatabaseHelper.TABLE_LIKES, me, ids, tracks)) {
+            emit(EVENT_DATA_CHANGED);
+        }
+    }
+
+    /**
+     * Bài viết không còn khả dụng (bị xóa trên Firebase / bị Quản trị viên ẩn hoặc gỡ bỏ):
+     * nếu bài hát của bài đó đang phát thì dừng ngay, đóng thông báo phát nhạc và thu hồi Mini Player.
+     */
+    private void onPostUnavailable(String postId) {
+        if (postId == null) return;
+        main.post(() -> MusicService.stopIfPlaying(app, postId));
+    }
+
     /** Dừng lắng nghe (đăng xuất). */
     public synchronized void stopRealtime() {
         if (postsReg != null) postsReg.remove();
@@ -947,6 +1000,10 @@ public class SyncManager {
         if (notifReg != null) notifReg.remove();
         if (followingReg != null) followingReg.remove();
         if (followersReg != null) followersReg.remove();
+        if (likesReg != null) likesReg.remove();
+        if (bookmarksReg != null) bookmarksReg.remove();
+        likesReg = null;
+        bookmarksReg = null;
         postsReg = null;
         meReg = null;
         notifReg = null;
@@ -993,6 +1050,7 @@ public class SyncManager {
                     db.removePostLocal(d.getId());
                     changed = true;
                 }
+                onPostUnavailable(d.getId());
             } else {
                 PostModel p = docToPost(d);
                 trackUndated(d, p);
@@ -1022,6 +1080,7 @@ public class SyncManager {
             db.applyRealtimePost(p, addToHome);
         } else {
             db.removePostLocal(p.getId());
+            onPostUnavailable(p.getId());
         }
         return true;
     }
@@ -1037,9 +1096,12 @@ public class SyncManager {
         watchedPostReg = ref.addSnapshotListener(executor, (doc, e) -> {
             if (e != null || doc == null || !isSignedIn()) return;
             if (!doc.exists()) {
+                // "Không tồn tại" lấy từ bộ nhớ tạm (đang mất mạng) chưa chắc bài đã bị xóa: bỏ qua
+                if (doc.getMetadata().isFromCache()) return;
                 // Bài mình đăng lúc offline chưa lên Firebase thì giữ nguyên
                 if (SyncStatus.SYNCED.equals(db.getPostSyncStatus(postId))) {
                     db.removePostLocal(postId);
+                    onPostUnavailable(postId);
                     emit(EVENT_DATA_CHANGED);
                 }
                 return;
@@ -1052,6 +1114,9 @@ public class SyncManager {
                 .limit(DatabaseHelper.LIMIT_COMMENTS_PER_POST)
                 .addSnapshotListener(executor, (snap, e) -> {
                     if (e != null || snap == null || !isSignedIn()) return;
+                    // Mở lại bài lúc mất mạng: Firestore trả danh sách RỖNG từ bộ nhớ tạm (không phải dữ liệu thật
+                    // của máy chủ). Không được dùng nó ghi đè các bình luận đã lưu đệm trong SQLite để xem offline.
+                    if (snap.getMetadata().isFromCache()) return;
                     if (db.getPostSyncStatus(postId) == null) return;
                     List<CommentModel> comments = new ArrayList<>();
                     for (DocumentSnapshot d : snap.getDocuments()) comments.add(docToComment(postId, d));
@@ -1127,7 +1192,31 @@ public class SyncManager {
      * Báo cáo của bài đã bị xóa thì tự dọn.
      */
     private List<ReportedPost> loadReportsBlocking(Map<String, PostModel> knownPosts) throws Exception {
-        List<DocumentSnapshot> docs = await(fs.collection(C_REPORTS).limit(500).get()).getDocuments();
+        return buildReportsBlocking(await(fs.collection(C_REPORTS).limit(500).get()).getDocuments(), knownPosts);
+    }
+
+    /**
+     * Trang Quản trị: lắng nghe collection reports theo thời gian thực. Báo cáo được xử lý / xóa (trên Console
+     * hoặc bởi Quản trị viên khác) thì danh sách và thẻ thống kê cập nhật ngay. Gọi remove() trên kết quả để dừng.
+     */
+    public ListenerRegistration watchReports(ReportsListener listener) {
+        if (!isSignedIn()) return null;
+        return fs.collection(C_REPORTS).limit(500).addSnapshotListener(executor, (snap, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Realtime báo cáo vi phạm lỗi: " + e.getMessage());
+                return;
+            }
+            if (snap == null || snap.getMetadata().isFromCache()) return;
+            try {
+                List<ReportedPost> reports = buildReportsBlocking(snap.getDocuments(), new HashMap<>());
+                main.post(() -> listener.onReports(reports));
+            } catch (Exception ex) {
+                Log.w(TAG, "Không dựng được danh sách báo cáo: " + ex.getMessage());
+            }
+        });
+    }
+
+    private List<ReportedPost> buildReportsBlocking(List<DocumentSnapshot> docs, Map<String, PostModel> knownPosts) throws Exception {
         Map<String, List<DocumentSnapshot>> byPost = new java.util.LinkedHashMap<>();
         for (DocumentSnapshot d : docs) {
             String postId = str(d, "postId");
@@ -1198,6 +1287,7 @@ public class SyncManager {
             if (hidden) {
                 deleteReportsOf(postId);
                 db.removePostLocal(postId);
+                onPostUnavailable(postId);
             }
         });
     }
@@ -1224,6 +1314,7 @@ public class SyncManager {
             deletePostRemote(postId, true);
             deleteReportsOf(postId);
             db.removePostLocal(postId);
+            onPostUnavailable(postId);
         });
     }
 

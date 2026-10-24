@@ -35,8 +35,11 @@ public class DiscoverActivity extends BaseActivity {
     private View discWheelSection;
     private final List<PostModel> wheelPosts = new ArrayList<>();
 
-    // Tìm kiếm tại chỗ
+    // Tìm kiếm tại chỗ: danh sách kết quả riêng
     private String searchQuery = "";
+    private RecyclerView rvSearchResults;
+    private TrackListAdapter searchAdapter;
+    private final List<PostModel> searchResults = new ArrayList<>();
     private View layoutEmpty;
     private TextView tvEmptyMsg, tvSummary;
 
@@ -117,7 +120,7 @@ public class DiscoverActivity extends BaseActivity {
     }
 
     // ===================================================================================
-    // Tìm kiếm tại chỗ (lọc Bảng xếp hạng và Vòng xoay đĩa than)
+    // Tìm kiếm tại chỗ (danh sách kết quả riêng, không gộp Bảng xếp hạng / Vòng xoay đĩa than)
     // ===================================================================================
 
     private void setupSearch() {
@@ -128,6 +131,13 @@ public class DiscoverActivity extends BaseActivity {
         tvSummary = findViewById(R.id.tv_discover_search_summary);
         layoutEmpty = findViewById(R.id.layout_discover_search_empty);
         tvEmptyMsg = findViewById(R.id.tv_discover_search_empty_msg);
+        rvSearchResults = findViewById(R.id.rv_discover_search_results);
+        if (rvSearchResults != null) {
+            rvSearchResults.setLayoutManager(new LinearLayoutManager(this));
+            searchAdapter = new TrackListAdapter(this, searchResults, (track, position) -> togglePlay(track));
+            searchAdapter.setOnTrackLongClickListener((track, position) -> openPost(track));
+            rvSearchResults.setAdapter(searchAdapter);
+        }
 
         findViewById(R.id.iv_discover_search).setOnClickListener(v -> {
             if (layoutSearchBar == null) return;
@@ -171,62 +181,63 @@ public class DiscoverActivity extends BaseActivity {
         }
     }
 
-    /** Áp ô tìm kiếm lên Bảng xếp hạng + Vòng xoay đĩa than (thứ hạng giữ nguyên theo lượt tim). */
+    /**
+     * Không tìm kiếm: hiện Bảng xếp hạng + Vòng xoay đĩa than.
+     * Đang tìm kiếm: chỉ hiện danh sách kết quả riêng (mỗi bài hát một hàng) và dòng tóm tắt đếm ĐÚNG số hàng đó,
+     * không cộng thêm bài của Bảng xếp hạng hay Vòng xoay đĩa than.
+     */
     private void applySearch() {
         String q = MusicChart.normalize(searchQuery);
+        boolean searching = !q.isEmpty();
+
         chartShown.clear();
         chartShownLikes.clear();
         for (MusicChart.Entry e : chartEntries) {
-            if (q.isEmpty() || matches(q, e.post)) {
-                chartShown.add(e.post);
-                chartShownLikes.add(e.totalLikes);
-            }
+            chartShown.add(e.post);
+            chartShownLikes.add(e.totalLikes);
         }
         chartAdapter.notifyDataSetChanged();
 
-        // Banner Top 1: luôn là bài nhiều tim nhất (ẩn khi đang tìm mà Top 1 không khớp)
+        // Banner Top 1: luôn là bài nhiều tim nhất
         MusicChart.Entry top1 = chartEntries.isEmpty() ? null : chartEntries.get(0);
-        boolean showTop1 = top1 != null && (q.isEmpty() || matches(q, top1.post));
-        if (cardTop1 != null) cardTop1.setVisibility(showTop1 ? View.VISIBLE : View.GONE);
+        if (cardTop1 != null) cardTop1.setVisibility(top1 != null && !searching ? View.VISIBLE : View.GONE);
         if (top1 != null) {
             if (tvBannerTitle != null) tvBannerTitle.setText(top1.post.getSongTitle());
             if (tvBannerArtist != null) {
                 tvBannerArtist.setText(top1.post.getArtistName() + " · " + MusicChart.likesLabel(top1.totalLikes));
             }
         }
+        if (headerChart != null) headerChart.setVisibility(searching ? View.GONE : View.VISIBLE);
+        rvChart.setVisibility(!searching && !chartShown.isEmpty() ? View.VISIBLE : View.GONE);
+        if (tvChartEmpty != null) tvChartEmpty.setVisibility(!searching && chartEntries.isEmpty() ? View.VISIBLE : View.GONE);
 
-        boolean anyChart = !chartShown.isEmpty();
-        if (headerChart != null) headerChart.setVisibility(anyChart || q.isEmpty() ? View.VISIBLE : View.GONE);
-        rvChart.setVisibility(anyChart ? View.VISIBLE : View.GONE);
-        if (tvChartEmpty != null) tvChartEmpty.setVisibility(q.isEmpty() && chartEntries.isEmpty() ? View.VISIBLE : View.GONE);
+        applyWheelFilter(searching);
 
-        int wheelMatches = applyWheelFilter();
+        searchResults.clear();
+        if (searching) searchResults.addAll(MusicChart.search(dbHelper.getAllPosts(), searchQuery));
+        if (searchAdapter != null) searchAdapter.notifyDataSetChanged();
+        if (rvSearchResults != null) rvSearchResults.setVisibility(searchResults.isEmpty() ? View.GONE : View.VISIBLE);
         updatePlayButtons();
 
-        if (q.isEmpty()) {
+        if (!searching) {
             if (layoutEmpty != null) layoutEmpty.setVisibility(View.GONE);
             if (tvSummary != null) tvSummary.setVisibility(View.GONE);
             return;
         }
-        int matchCount = chartShown.size() + wheelMatches;
-        if (matchCount == 0) {
-            if (layoutEmpty != null) layoutEmpty.setVisibility(View.VISIBLE);
-            if (tvEmptyMsg != null) tvEmptyMsg.setText("Không tìm thấy bài hát nào phù hợp cho: \"" + searchQuery + "\".");
-            if (tvSummary != null) tvSummary.setVisibility(View.GONE);
-        } else {
-            if (layoutEmpty != null) layoutEmpty.setVisibility(View.GONE);
-            if (tvSummary != null) {
-                tvSummary.setVisibility(View.VISIBLE);
-                tvSummary.setText("Tìm thấy " + matchCount + " kết quả khám phá cho: \"" + searchQuery + "\"");
-            }
+        int matchCount = searchResults.size();
+        if (tvSummary != null) {
+            tvSummary.setVisibility(View.VISIBLE);
+            tvSummary.setText(searchSummary(matchCount, searchQuery));
+        }
+        if (layoutEmpty != null) layoutEmpty.setVisibility(matchCount == 0 ? View.VISIBLE : View.GONE);
+        if (tvEmptyMsg != null && matchCount == 0) {
+            tvEmptyMsg.setText("Không tìm thấy bài hát nào phù hợp với từ khóa \"" + searchQuery + "\".");
         }
     }
 
-    private static boolean matches(String queryNorm, PostModel p) {
-        for (String src : new String[]{p.getSongTitle(), p.getArtistName(), p.getGenre(), p.getAuthorName()}) {
-            if (src != null && MusicChart.normalize(src).contains(queryNorm)) return true;
-        }
-        return false;
+    /** Dòng tóm tắt kết quả tìm kiếm; con số luôn bằng số hàng bài hát đang hiển thị. */
+    static String searchSummary(int count, String query) {
+        return "Tìm thấy " + count + " bài hát cho: \"" + query + "\"";
     }
 
     // ===================================================================================
@@ -246,6 +257,7 @@ public class DiscoverActivity extends BaseActivity {
                     MusicService.toggle(DiscoverActivity.this);
                 } else {
                     MusicService.play(DiscoverActivity.this, post);
+                    MusicService.announce(DiscoverActivity.this, post);
                 }
             }
 
@@ -304,23 +316,17 @@ public class DiscoverActivity extends BaseActivity {
                 wheelPosts.add(p);
             }
         }
-        applyWheelFilter();
+        applyWheelFilter(!MusicChart.normalize(searchQuery).isEmpty());
         discWheel.setPlayingPostId(MusicService.isPlaying ? MusicService.currentPostId : null);
     }
 
-    /** Lọc vòng xoay theo ô tìm kiếm; trả về số đĩa khớp (0 khi không tìm kiếm). */
-    private int applyWheelFilter() {
-        if (discWheel == null) return 0;
-        List<PostModel> shown = new ArrayList<>();
-        String q = MusicChart.normalize(searchQuery);
-        for (PostModel p : wheelPosts) {
-            if (q.isEmpty() || matches(q, p)) shown.add(p);
-        }
-        discWheel.setPosts(shown);
+    /** Vòng xoay đĩa than là khu vực riêng: ẩn khi đang tìm kiếm (kết quả tìm kiếm có danh sách riêng). */
+    private void applyWheelFilter(boolean searching) {
+        if (discWheel == null) return;
+        discWheel.setPosts(new ArrayList<>(wheelPosts));
         if (discWheelSection != null) {
-            discWheelSection.setVisibility(shown.isEmpty() ? View.GONE : View.VISIBLE);
+            discWheelSection.setVisibility(searching || wheelPosts.isEmpty() ? View.GONE : View.VISIBLE);
         }
-        return q.isEmpty() ? 0 : shown.size();
     }
 
     // ===================================================================================
@@ -352,6 +358,7 @@ public class DiscoverActivity extends BaseActivity {
         super.updateMiniPlayerUi();
         updatePlayButtons();
         if (chartAdapter != null) chartAdapter.notifyDataSetChanged();
+        if (searchAdapter != null) searchAdapter.notifyDataSetChanged();
     }
 
     private void updatePlayButtons() {

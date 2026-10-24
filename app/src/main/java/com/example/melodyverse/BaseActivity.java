@@ -77,6 +77,10 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
 
                 updateMiniPlayerUi();
                 updateNowPlayingDialogUi();
+                // Bài hát bị thu hồi (bài viết bị gỡ bỏ / ẩn): đóng luôn màn Đang phát
+                if (!MusicService.hasTrackLoaded && !playing && nowPlayingDialog != null && nowPlayingDialog.isShowing()) {
+                    nowPlayingDialog.dismiss();
+                }
 
                 // Ví dụ: bấm Play / tự chuyển sang bài trực tuyến lúc mất mạng, hết danh sách nhạc đã lưu
                 String message = intent.getStringExtra(MusicService.EXTRA_MESSAGE);
@@ -175,7 +179,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
                 if (miniPlayerContainer != null) {
                     miniPlayerContainer.setVisibility(View.GONE);
                 }
-                Toast.makeText(this, "Đã ẩn thanh phát nhạc mini. Thanh sẽ tự hiện lại khi phát bài hát mới.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Đã ẩn thanh phát nhạc", Toast.LENGTH_SHORT).show();
             });
         }
 
@@ -399,7 +403,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
         if (tvMiniPlayerTitle != null) tvMiniPlayerTitle.setText(currentSongTitle);
         // Nhạc trực tuyến đang tải: hiện rõ "Đang tải", không giả là đang phát
         if (tvMiniPlayerArtist != null) {
-            tvMiniPlayerArtist.setText(MusicService.isBuffering ? "⏳ Đang tải nhạc trực tuyến…" : currentSongArtist);
+            tvMiniPlayerArtist.setText(MusicService.isBuffering ? "Đang tải…" : currentSongArtist);
         }
         if (ivMiniPlayerPlay != null) {
             ivMiniPlayerPlay.setImageResource(isGlobalPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
@@ -517,8 +521,12 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
 
         if (btnPrev != null) {
             btnPrev.setOnClickListener(v -> {
-                MusicService.seekTo(this, 0);
-                Toast.makeText(this, "Phát lại bài hát từ đầu...", Toast.LENGTH_SHORT).show();
+                // Đối xứng với nút Tiếp theo: đã nghe được một đoạn thì tua lại đầu bài, bấm tiếp sẽ về bài trước
+                boolean restart = MusicService.hasTrackLoaded
+                        && MusicService.shouldRestartOnPrevious(MusicService.getCurrentPosition());
+                MusicService.previous(this);
+                Toast.makeText(this, restart ? "Phát lại bài hát từ đầu..." : "Đang chuyển về bài trước...",
+                        Toast.LENGTH_SHORT).show();
             });
         }
 

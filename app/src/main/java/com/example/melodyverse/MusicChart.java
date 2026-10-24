@@ -13,7 +13,8 @@ import java.util.Map;
  */
 public final class MusicChart {
 
-    public static final int TOP_SIZE = 10;
+    /** Chỉ vinh danh Top 3 (Quán quân, Á quân, Top 3) để bảng gọn, không trùng công năng với Vòng xoay đĩa than. */
+    public static final int TOP_SIZE = 3;
 
     /** Một hàng trên bảng xếp hạng. */
     public static final class Entry {
@@ -31,7 +32,7 @@ public final class MusicChart {
 
     /**
      * Xếp hạng giảm dần theo tổng lượt tim; bằng tim thì bài được đăng sớm hơn đứng trên (giữ ổn định thứ tự).
-     * Bỏ qua bài riêng tư và bài không có tên bài hát.
+     * Bỏ qua bài riêng tư, bài không có tên bài hát và bài hát chưa có lượt tim nào (0 tim không lên bảng).
      */
     public static List<Entry> rank(List<PostModel> posts, int limit) {
         Map<String, PostModel> best = new LinkedHashMap<>();
@@ -57,9 +58,42 @@ public final class MusicChart {
         List<Entry> result = new ArrayList<>();
         for (String key : keys) {
             if (result.size() >= limit) break;
+            if (likes.get(key) <= 0) break; // đã sắp giảm dần: từ đây trở đi đều là bài 0 tim
             result.add(new Entry(best.get(key), likes.get(key)));
         }
         return result;
+    }
+
+    /**
+     * Kết quả tìm kiếm của màn Khám phá: các BÀI HÁT công khai khớp từ khóa (tên bài, nghệ sĩ, thể loại, người đăng),
+     * mỗi bài hát chỉ xuất hiện một lần dù được nhiều bài viết chia sẻ. Số lượng phần tử chính là số hàng hiển thị.
+     */
+    public static List<PostModel> search(List<PostModel> posts, String query) {
+        List<PostModel> result = new ArrayList<>();
+        String q = normalize(query);
+        if (q.isEmpty()) return result;
+        Map<String, Integer> indexByKey = new LinkedHashMap<>();
+        for (PostModel p : posts) {
+            if (p == null || p.isPrivate() || p.getSongTitle() == null || p.getSongTitle().trim().isEmpty()) continue;
+            if (!matchesQuery(q, p)) continue;
+            String key = songKey(p);
+            Integer idx = indexByKey.get(key);
+            if (idx == null) {
+                indexByKey.put(key, result.size());
+                result.add(p);
+            } else if (p.getLikeCount() > result.get(idx).getLikeCount()) {
+                result.set(idx, p); // bài viết nhiều tim nhất đại diện cho bài hát
+            }
+        }
+        return result;
+    }
+
+    /** @param queryNorm từ khóa đã qua {@link #normalize(String)} */
+    static boolean matchesQuery(String queryNorm, PostModel p) {
+        for (String src : new String[]{p.getSongTitle(), p.getArtistName(), p.getGenre(), p.getAuthorName()}) {
+            if (src != null && normalize(src).contains(queryNorm)) return true;
+        }
+        return false;
     }
 
     /** Khóa nhận diện một bài hát: tên bài + nghệ sĩ, bỏ dấu, không phân biệt hoa thường. */

@@ -12,7 +12,8 @@ import android.widget.Toast;
 
 /**
  * Màn hình Tạo bài viết chia sẻ bài hát mới (Bài 4 & Bài 5 - User Interaction & Inputs).
- * Lưu ngay vào SQLite (đăng được cả khi offline), tự đồng bộ lên Firebase và phát nhạc ngay khi đăng.
+ * Lưu ngay vào SQLite (đăng được cả khi offline) và tự đồng bộ lên Firebase.
+ * Đăng xong KHÔNG tự phát nhạc: người dùng tự bấm Play trên bài viết khi muốn nghe.
  */
 public class CreatePostActivity extends BaseActivity {
 
@@ -26,6 +27,9 @@ public class CreatePostActivity extends BaseActivity {
     private Spinner spinnerGenre;
     private DatabaseHelper dbHelper;
     private int selectedRawAudio = R.raw.song_sample_1;
+    /** Link của bài hát mẫu vừa chọn (chip / nút điền mẫu) — chỉ link này mới được phát bằng âm thanh mẫu. */
+    private String sampleMusicUrl = null;
+    private TextView tvMusicUrlError;
     private boolean isPrivate = false;
     private View btnTogglePrivacy;
     private android.widget.ImageView ivPrivacyIcon;
@@ -48,6 +52,20 @@ public class CreatePostActivity extends BaseActivity {
         etMusicUrl = findViewById(R.id.et_music_url);
         etHashtags = findViewById(R.id.et_hashtags);
         spinnerGenre = findViewById(R.id.spinner_genre);
+        tvMusicUrlError = findViewById(R.id.tv_music_url_error);
+        // Người dùng sửa lại liên kết: ẩn cảnh báo cũ
+        etMusicUrl.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                hideMusicUrlError();
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
 
         // Hiển thị tên người đang đăng nhập làm tác giả bài viết
         TextView tvAuthorName = findViewById(R.id.tv_author_name);
@@ -119,6 +137,11 @@ public class CreatePostActivity extends BaseActivity {
         // Nút ĐĂNG BÀI
         findViewById(R.id.btn_post).setOnClickListener(v -> {
             String pasted = etMusicUrl.getText().toString().trim();
+            // Chặn đăng ngay khi liên kết sai định dạng (không gọi mạng, không gán âm thanh mẫu thay thế)
+            if (!pasted.isEmpty() && !isAcceptedMusicUrl(pasted)) {
+                showMusicUrlError(MusicService.INVALID_AUDIO_LINK_MESSAGE);
+                return;
+            }
             if (AudiusApi.isAudiusPageLink(pasted)) {
                 // Link trang audius.co -> gọi API /resolve để lấy thông tin & link phát thật rồi mới đăng
                 v.setEnabled(false);
@@ -134,8 +157,9 @@ public class CreatePostActivity extends BaseActivity {
                     @Override
                     public void onError(String message) {
                         v.setEnabled(true);
-                        etMusicUrl.setError("Không lấy được bài hát từ Audius: " + message);
-                        etMusicUrl.requestFocus();
+                        showMusicUrlError(SyncManager.get(CreatePostActivity.this).isOnline()
+                                ? MusicService.INVALID_AUDIO_LINK_MESSAGE
+                                : "Cần kết nối Internet để lấy bài hát từ Audius. Vui lòng thử lại khi có mạng.");
                     }
                 });
                 return;
@@ -165,9 +189,17 @@ public class CreatePostActivity extends BaseActivity {
         }
 
         if (url.isEmpty()) {
-            etMusicUrl.setError("Vui lòng nhập đường link bài hát!");
-            etMusicUrl.requestFocus();
+            showMusicUrlError("Vui lòng nhập đường link bài hát hoặc bấm Tìm nhạc trên Audius!");
             return;
+        }
+
+        if (!isAcceptedMusicUrl(url)) {
+            showMusicUrlError(MusicService.INVALID_AUDIO_LINK_MESSAGE);
+            return;
+        }
+        // Chỉ bài hát mẫu (chip) mới dùng âm thanh mẫu đóng gói trong app
+        if (!url.equals(sampleMusicUrl) && (editingPost == null || !url.equals(editingPost.getMusicUrl()))) {
+            selectedRawAudio = 0;
         }
 
         if (caption.isEmpty()) {
@@ -208,9 +240,6 @@ public class CreatePostActivity extends BaseActivity {
         boolean success = dbHelper.insertPost(newPost);
 
         if (success) {
-            // Tự động phát ngay bài hát vừa đăng qua MusicService
-            MusicService.play(this, newPost);
-
             // Gửi thông báo hệ thống
             String privacyNotice = isPrivate ? " [Chế độ: Riêng tư]" : " [Chế độ: Công khai]";
             NotificationHelper.showNotification(
@@ -235,6 +264,31 @@ public class CreatePostActivity extends BaseActivity {
         } else {
             Toast.makeText(this, "Có lỗi xảy ra khi lưu bài viết!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Liên kết được phép đăng: nguồn phát được hỗ trợ (Audius / file âm thanh trực tiếp),
+     * hoặc đúng link bài hát mẫu vừa chọn, hoặc link cũ của bài đang sửa (chưa đổi).
+     */
+    private boolean isAcceptedMusicUrl(String url) {
+        if (url.equals(sampleMusicUrl)) return true;
+        if (editingPost != null && url.equals(editingPost.getMusicUrl())) return true;
+        return MusicService.isSupportedAudioLink(url);
+    }
+
+    /** Hiện cảnh báo rõ ràng ngay dưới ô Liên kết âm thanh và đưa con trỏ về ô đó. */
+    private void showMusicUrlError(String message) {
+        etMusicUrl.setError(message);
+        if (tvMusicUrlError != null) {
+            tvMusicUrlError.setText(message);
+            tvMusicUrlError.setVisibility(View.VISIBLE);
+        }
+        etMusicUrl.requestFocus();
+    }
+
+    private void hideMusicUrlError() {
+        etMusicUrl.setError(null);
+        if (tvMusicUrlError != null) tvMusicUrlError.setVisibility(View.GONE);
     }
 
     /** Mở từ menu "Chỉnh sửa bài viết": nạp bài cũ vào form, đổi tiêu đề và nút thành LƯU. */
@@ -361,7 +415,7 @@ public class CreatePostActivity extends BaseActivity {
         if (overwrite || etArtistName.getText().toString().trim().isEmpty()) {
             etArtistName.setText(track.artist);
         }
-        etMusicUrl.setError(null);
+        hideMusicUrlError();
         etMusicUrl.setText(track.getStreamUrl());
         if (overwrite && spinnerGenre != null) {
             int idx = mapAudiusGenre(track.genre);
@@ -423,6 +477,7 @@ public class CreatePostActivity extends BaseActivity {
         etCaption.setText(caption);
         etSongTitle.setText(title);
         etArtistName.setText(artist);
+        sampleMusicUrl = url;
         etMusicUrl.setText(url);
         etHashtags.setText(hashtags);
         if (spinnerGenre != null && genreIndex < genres.length) {
@@ -437,6 +492,7 @@ public class CreatePostActivity extends BaseActivity {
         super.onSaveInstanceState(outState);
         outState.putInt("selected_raw_audio", selectedRawAudio);
         outState.putBoolean("is_private", isPrivate);
+        outState.putString("sample_music_url", sampleMusicUrl);
         if (spinnerGenre != null) {
             outState.putInt("selected_genre_pos", spinnerGenre.getSelectedItemPosition());
         }
@@ -448,6 +504,7 @@ public class CreatePostActivity extends BaseActivity {
         if (savedInstanceState != null) {
             selectedRawAudio = savedInstanceState.getInt("selected_raw_audio", R.raw.song_sample_1);
             isPrivate = savedInstanceState.getBoolean("is_private", false);
+            sampleMusicUrl = savedInstanceState.getString("sample_music_url");
             updatePrivacyUi();
             if (spinnerGenre != null) {
                 spinnerGenre.setSelection(savedInstanceState.getInt("selected_genre_pos", 0));

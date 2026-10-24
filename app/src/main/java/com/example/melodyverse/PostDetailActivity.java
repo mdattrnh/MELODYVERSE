@@ -42,6 +42,11 @@ public class PostDetailActivity extends BaseActivity {
     /** Mở từ thông báo lượt thích / bài mới: phát ngay bài hát của bài viết (nếu chưa phát). */
     public static final String EXTRA_AUTO_PLAY = "EXTRA_AUTO_PLAY";
 
+    /** Thông báo khi bài viết đang xem bị xóa khỏi hệ thống hoặc bị ẩn do vi phạm. */
+    public static final String POST_UNAVAILABLE_MESSAGE =
+            "Bài viết này hiện không còn khả dụng do đã bị gỡ bỏ hoặc vi phạm tiêu chuẩn cộng đồng MelodyVerse.";
+    private boolean closingUnavailable = false;
+
     private boolean pendingAutoPlay = false;
     private String highlightCommentId;
 
@@ -210,8 +215,7 @@ public class PostDetailActivity extends BaseActivity {
             if (isFinishing() || isDestroyed()) return;
             if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             if (status == SyncManager.Status.NOT_FOUND) {
-                Toast.makeText(this, "Bài viết không tồn tại hoặc đã bị xóa!", Toast.LENGTH_SHORT).show();
-                finish();
+                closeAsUnavailable();
                 return;
             }
             isOfflineMode = status != SyncManager.Status.OK;
@@ -269,11 +273,14 @@ public class PostDetailActivity extends BaseActivity {
     @Override
     protected void onLocalDataChanged() {
         // Bình luận 🕒 vừa gửi xong / có thay đổi realtime từ Firebase -> đọc lại SQLite
-        if (post == null) return;
+        if (post == null || closingUnavailable) return;
         if (dbHelper.getPostById(postId) == null) {
-            // Bài vừa bị xóa (hoặc chuyển sang riêng tư) trên Firebase
-            Toast.makeText(this, "Bài viết không tồn tại hoặc đã bị xóa!", Toast.LENGTH_SHORT).show();
-            finish();
+            if (SyncStatus.PENDING_DELETE.equals(dbHelper.getPostSyncStatus(postId))) {
+                finish(); // chính tác giả vừa xóa bài trên máy này
+                return;
+            }
+            // Bài vừa bị xóa trên Firebase / bị Quản trị viên gỡ bỏ hoặc ẩn do vi phạm
+            closeAsUnavailable();
             return;
         }
         loadPostData();
@@ -283,6 +290,26 @@ public class PostDetailActivity extends BaseActivity {
     @Override
     protected void onReconnectedRefresh() {
         reloadFromServer();
+    }
+
+    /**
+     * Bài viết không còn khả dụng: dừng nhạc của bài (nếu đang phát), báo cho người dùng một cách lịch sự,
+     * đóng màn hình Chi tiết và đưa về Bảng tin chính để không thao tác trên dữ liệu không còn tồn tại.
+     */
+    private void closeAsUnavailable() {
+        if (closingUnavailable || isFinishing()) return;
+        closingUnavailable = true;
+        MusicService.stopIfPlaying(this, postId);
+        Toast.makeText(getApplicationContext(), POST_UNAVAILABLE_MESSAGE, Toast.LENGTH_LONG).show();
+        boolean isAdmin = dbHelper.getUser(SessionManager.getCurrentUsername(this)).isAdmin();
+        if (!isAdmin) {
+            // Quản trị viên mở bài từ trang Quản trị thì chỉ đóng lại (quay về trang Quản trị)
+            Intent home = new Intent(this, MainActivity.class);
+            home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(home);
+            overridePendingTransition(0, 0);
+        }
+        finish();
     }
 
     private void loadPostData() {

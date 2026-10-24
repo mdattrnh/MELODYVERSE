@@ -495,6 +495,7 @@ public class ProfileActivity extends BaseActivity {
         });
 
         dialog.show();
+        applyFollowDialogSize(dialog);
     }
 
     private void showFollowingDialog() {
@@ -553,6 +554,20 @@ public class ProfileActivity extends BaseActivity {
         });
 
         dialog.show();
+        applyFollowDialogSize(dialog);
+    }
+
+    /**
+     * Ép chiều rộng cửa sổ hộp thoại Người theo dõi / Đang theo dõi giãn theo bề ngang màn hình ngay khi vừa mở
+     * (nền trong suốt làm mất khung mặc định, nếu không đặt cửa sổ sẽ co theo nội dung ban đầu).
+     */
+    private void applyFollowDialogSize(AlertDialog dialog) {
+        android.view.Window window = dialog.getWindow();
+        if (window == null) return;
+        android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+        int width = (int) (dm.widthPixels * 0.92f);
+        window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        window.setGravity(android.view.Gravity.CENTER);
     }
 
     private void updateTargetFollowButtonUi() {
