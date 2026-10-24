@@ -40,19 +40,6 @@ public class SyncRulesTest {
     }
 
     @Test
-    public void seedCommentCounts_matchSeedComments() {
-        // Lỗi #10: số bình luận hiển thị phải khớp số bình luận thật
-        long now = System.currentTimeMillis();
-        for (PostModel post : SeedData.posts(now)) {
-            int actual = 0;
-            for (CommentModel c : SeedData.comments(now)) {
-                if (c.getPostId().equals(post.getId())) actual++;
-            }
-            assertEquals("Bài " + post.getId(), actual, post.getCommentCount());
-        }
-    }
-
-    @Test
     public void demoAccounts_mapBothWays() {
         assertEquals(SeedData.DEMO_USER_EMAIL, SeedData.demoEmail("MinhThu"));
         assertEquals(SeedData.DEMO_ADMIN, SeedData.demoUsername("ADMIN@melodyverse.vn"));

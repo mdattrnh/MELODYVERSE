@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:gravity="center"
-        android:text="Bạn có muốn theo dõi các nghệ sĩ sau không?"
+        android:text="Bạn có muốn theo dõi các thành viên sau không?"
         android:textColor="@color/colorTextPrimary"
         android:textSize="18sp"
         android:textStyle="bold" />
@@ -40,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:gravity="center"
-        android:text="Chọn những nghệ sĩ bạn thích để thấy bài đăng của họ. Đây là hồ sơ nghệ sĩ minh họa của MelodyVerse — bạn có thể bỏ qua và theo dõi sau."
+        android:text="Chọn những thành viên bạn thích để thấy bài đăng của họ. Bạn có thể bỏ qua và theo dõi sau."
         android:textColor="@color/colorTextSecondary"
         android:textSize="13sp" />
 

@@ -103,9 +103,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             holder.tvGenreBadge.setText(post.getGenre());
         }
 
-        // Nhãn "Minh họa" cho bài viết thuộc dữ liệu mẫu (phân biệt với nội dung người dùng thật tạo)
+        // Không còn dữ liệu mẫu: mọi bài viết đều do người dùng thật đăng, luôn ẩn nhãn "Minh họa"
         if (holder.tvSampleBadge != null) {
-            holder.tvSampleBadge.setVisibility(post.isSample() ? View.VISIBLE : View.GONE);
+            holder.tvSampleBadge.setVisibility(View.GONE);
         }
 
         // Nhãn đĩa than: cặp màu cố định theo từng bài (đồng nhất với màn Đang phát / Khám phá)

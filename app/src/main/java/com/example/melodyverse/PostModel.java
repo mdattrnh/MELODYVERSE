@@ -113,9 +113,4 @@ public class PostModel {
     private boolean hiddenByAdmin = false;
     public boolean isHiddenByAdmin() { return hiddenByAdmin; }
     public void setHiddenByAdmin(boolean hiddenByAdmin) { this.hiddenByAdmin = hiddenByAdmin; }
-
-    /** Bài đăng minh họa do hệ thống nạp sẵn (dữ liệu mẫu phục vụ trình diễn). */
-    public boolean isSample() {
-        return SeedData.isSamplePost(id) || SeedData.isSampleAccount(authorUsername);
-    }
 }

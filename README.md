@@ -40,7 +40,7 @@
 | Nhóm | File |
 |---|---|
 | Màn hình | `SplashActivity`, `LoginActivity`, `RegisterActivity`, `MainActivity` (Bảng tin), `PostDetailActivity`, `CreatePostActivity`, `DiscoverActivity`, `NotificationsActivity`, `ProfileActivity`, `SettingsActivity`, `AdminActivity` — tất cả kế thừa `BaseActivity` (thanh điều hướng + mini player + màn Đang phát) |
-| Dữ liệu & đồng bộ | `DatabaseHelper` (SQLite), `SyncManager` (Firestore ↔ SQLite), `AuthManager`, `GoogleSignInHelper`, `SessionManager`, `SeedData` (dữ liệu mẫu) |
+| Dữ liệu & đồng bộ | `DatabaseHelper` (SQLite), `SyncManager` (Firestore ↔ SQLite), `AuthManager`, `GoogleSignInHelper`, `SessionManager`, `SeedData` (2 tài khoản demo) |
 | Nhạc | `MusicService`, `NotificationHelper`, `AudiusApi`, `MusicChart` (bảng xếp hạng) |
 | Mạng | `NetworkMonitor`, `NetworkChangeReceiver` |
 | Adapter / View | `PostAdapter`, `CommentAdapter`, `TrackListAdapter`, `FollowUserAdapter`, `SuggestionAdapter`, `SimilarPostAdapter`, `DiscWheelView`, `WaveformSeekBar` |
@@ -84,10 +84,10 @@ Dòng lệnh: `gradlew :app:assembleDebug` (build APK) · `gradlew :app:testDebu
 
 | Tài khoản | Mật khẩu | Vai trò |
 |---|---|---|
-| `minhthu` | `12345678` | Thành viên (có sẵn bài viết, người theo dõi, thông báo minh họa) |
+| `minhthu` | `12345678` | Thành viên |
 | `admin` | `admin123` | Quản trị viên — vào thẳng trang Quản trị |
 
-Màn Đăng nhập có nút tự điền nhanh hai tài khoản này. Các hồ sơ nghệ sĩ (`hieuthuhai`, `quanghung_masterd`, `wrenevans`…) là **dữ liệu minh họa** (gắn nhãn *Minh họa*), không đăng nhập được.
+Màn Đăng nhập có nút tự điền nhanh hai tài khoản này. Ngoài hai tài khoản này, app không nạp sẵn hồ sơ, bài viết hay quan hệ theo dõi mẫu nào: mọi nội dung đều do người dùng đã đăng ký tạo ra.
 
 ---
 

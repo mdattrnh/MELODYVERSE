@@ -431,9 +431,7 @@ public class ProfileActivity extends BaseActivity {
         if (user != null) {
             tvName.setText(user.getFullName());
             tvBio.setText(user.getBio());
-            // Hồ sơ nghệ sĩ mẫu: ghi rõ là dữ liệu minh họa, không có tài khoản đăng nhập thực tế
-            tvUsername.setText("@" + user.getUsername()
-                    + (SeedData.isSampleAccount(user.getUsername()) ? "  •  Hồ sơ minh họa" : ""));
+            tvUsername.setText("@" + user.getUsername());
             currentFollowingCount = user.getFollowingCount();
             tvStatFollowing.setText(String.valueOf(currentFollowingCount));
 

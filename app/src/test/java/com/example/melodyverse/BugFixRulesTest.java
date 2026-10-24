@@ -4,12 +4,11 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
- * Kiểm thử các quy tắc thuần logic của đợt sửa lỗi: username từ tài khoản Google, phân biệt dữ liệu minh họa,
- * thông báo minh họa gắn đúng tài khoản nhận và trỏ tới nội dung có thật trong dữ liệu mẫu.
+ * Kiểm thử các quy tắc thuần logic của đợt sửa lỗi: username từ tài khoản Google, dữ liệu nạp sẵn chỉ gồm
+ * tài khoản demo, nội dung thông báo theo từng loại.
  */
 public class BugFixRulesTest {
 
@@ -27,41 +26,16 @@ public class BugFixRulesTest {
     }
 
     @Test
-    public void sampleAccounts_areSeparatedFromLoginAccounts() {
-        assertTrue(SeedData.isSampleAccount("hieuthuhai"));
-        assertTrue(SeedData.isSampleAccount("@QuangHung_MasterD"));
-        // Hai tài khoản demo có thông tin đăng nhập thật, không phải hồ sơ minh họa
-        assertFalse(SeedData.isSampleAccount(SeedData.DEMO_USER));
-        assertFalse(SeedData.isSampleAccount(SeedData.DEMO_ADMIN));
-        // Hồ sơ minh họa không có email đăng nhập
-        assertNull(SeedData.demoEmail("hieuthuhai"));
-        for (String artist : SeedData.SUGGESTED_ARTISTS) {
-            assertTrue("Nghệ sĩ gợi ý phải là hồ sơ mẫu: " + artist, SeedData.isSampleAccount(artist));
+    public void seedUsers_onlyContainDemoLoginAccounts() {
+        // Không còn hồ sơ nghệ sĩ minh họa: chỉ nạp sẵn 2 tài khoản demo đăng nhập được
+        Set<String> names = new HashSet<>();
+        for (UserModel u : SeedData.users()) {
+            names.add(u.getUsername());
+            assertNotNull("Tài khoản nạp sẵn phải có email đăng nhập: " + u.getUsername(), SeedData.demoEmail(u.getUsername()));
         }
-    }
-
-    @Test
-    public void sampleNotifications_belongToRecipientAndPointToRealSampleContent() {
-        List<NotificationModel> list = SeedData.sampleNotifications("minhthu", 1_000_000_000L);
-        assertFalse(list.isEmpty());
-        Set<String> commentIds = new HashSet<>();
-        for (CommentModel c : SeedData.comments(0)) commentIds.add(c.getId());
-        Set<String> ids = new HashSet<>();
-        for (NotificationModel n : list) {
-            assertEquals("minhthu", n.getRecipient());
-            assertTrue(n.isSample());
-            assertFalse(n.isRead());
-            assertTrue("ID thông báo không được trùng", ids.add(n.getId()));
-            if (!n.getPostId().isEmpty()) {
-                assertTrue("Thông báo phải trỏ tới bài mẫu có thật: " + n.getPostId(), SeedData.isSamplePost(n.getPostId()));
-            }
-            if (!n.getCommentId().isEmpty()) {
-                assertTrue("Thông báo phải trỏ tới bình luận mẫu có thật: " + n.getCommentId(), commentIds.contains(n.getCommentId()));
-            }
-            if (NotificationModel.TYPE_FOLLOW.equals(n.getType())) {
-                assertTrue(SeedData.isSampleAccount(n.getActor()));
-            }
-        }
+        assertEquals(2, names.size());
+        assertTrue(names.contains(SeedData.DEMO_USER));
+        assertTrue(names.contains(SeedData.DEMO_ADMIN));
     }
 
     @Test

@@ -602,6 +602,40 @@ public class SyncManager {
         });
     }
 
+    public interface UsersCallback {
+        void onDone(List<UserModel> users);
+    }
+
+    /**
+     * Gợi ý theo dõi cho thành viên mới: chỉ lấy tài khoản đã đăng ký thật trên Firestore
+     * (bỏ chính mình, tài khoản quản trị và tài khoản bị khóa). Offline / lỗi → danh sách rỗng.
+     */
+    public void loadSuggestedUsers(String me, int limit, UsersCallback cb) {
+        String self = DatabaseHelper.norm(me);
+        if (!isOnline() || !isSignedIn()) {
+            main.post(() -> cb.onDone(new ArrayList<>()));
+            return;
+        }
+        executor.execute(() -> {
+            List<UserModel> users = new ArrayList<>();
+            try {
+                for (DocumentSnapshot d : await(fs.collection(C_USERS).limit(200).get()).getDocuments()) {
+                    UserModel u = docToUser(d);
+                    String name = DatabaseHelper.norm(u.getUsername());
+                    String role = u.getRole() == null ? "" : u.getRole();
+                    if (name.equals(self) || SeedData.DEMO_ADMIN.equals(name) || u.isLocked()
+                            || role.contains("Admin") || role.contains("Quản trị")) continue;
+                    users.add(u);
+                    if (users.size() >= limit) break;
+                }
+                db.saveUsers(users);
+            } catch (Exception e) {
+                Log.w(TAG, "Tải gợi ý theo dõi thất bại: " + e.getMessage());
+            }
+            main.post(() -> cb.onDone(users));
+        });
+    }
+
     /** Hồ sơ: thông tin, bài đã đăng, người theo dõi / đang theo dõi; hồ sơ của mình thêm bài đã thích / đã lưu. */
     public void refreshProfile(String username, Callback cb) {
         runRefresh(cb, null, () -> {
@@ -701,7 +735,6 @@ public class SyncManager {
 
     /**
      * Lần đăng nhập đầu của mỗi tài khoản: tạo thông báo chào mừng riêng (ID welcome_{username}, không trùng).
-     * Tài khoản demo minhthu nhận thêm vài thông báo MINH HỌA trỏ tới bài viết / bình luận / hồ sơ mẫu có thật.
      * Chạy trên luồng nền (AuthManager gọi sau khi đăng nhập).
      */
     void ensureWelcomeNotificationBlocking(String username, String fullName) {
@@ -713,19 +746,6 @@ public class SyncManager {
         try {
             createNotificationIfMissing("welcome_" + u, notificationMap(u, uid, NotificationModel.TYPE_WELCOME, u,
                     fullName, null, null, null, null, now, false));
-            if (SeedData.DEMO_USER.equals(u)) {
-                for (NotificationModel n : SeedData.sampleNotifications(u, now)) {
-                    // Chỉ tạo thông báo minh họa khi bài / bình luận được nhắc tới vẫn còn trên Firestore
-                    if (!n.getPostId().isEmpty()) {
-                        DocumentReference postRef = fs.collection(C_POSTS).document(n.getPostId());
-                        if (!await(postRef.get()).exists()) continue;
-                        if (!n.getCommentId().isEmpty()
-                                && !await(postRef.collection(C_COMMENTS).document(n.getCommentId()).get()).exists()) continue;
-                    }
-                    createNotificationIfMissing(n.getId(), notificationMap(u, uid, n.getType(), n.getActor(), n.getActorName(),
-                            n.getPostId(), n.getCommentId(), n.getSongTitle(), n.getPreview(), n.getCreatedAt(), true));
-                }
-            }
             fetchNotificationsBlocking();
             lastNotificationFetch = System.currentTimeMillis();
         } catch (Exception e) {
@@ -1396,22 +1416,6 @@ public class SyncManager {
             data.put("isLocked", false);
             // merge: không ghi đè uid của tài khoản đã đăng nhập trước đó
             batch.set(fs.collection(C_USERS).document(u.getUsername()), data, SetOptions.merge());
-        }
-        for (PostModel p : SeedData.posts(now)) {
-            batch.set(fs.collection(C_POSTS).document(p.getId()), postToMap(p));
-        }
-        for (CommentModel c : SeedData.comments(now)) {
-            batch.set(fs.collection(C_POSTS).document(c.getPostId()).collection(C_COMMENTS).document(c.getId()), commentToMap(c));
-        }
-        for (String[] f : SeedData.follows()) {
-            batch.set(fs.collection(C_FOLLOWS).document(f[0] + "_" + f[1]), followMap(f[0], f[1]));
-        }
-        batch.set(fs.collection(C_LIKES).document("p2_" + SeedData.DEMO_USER), relationMap("p2", SeedData.DEMO_USER));
-        for (PostModel p : SeedData.posts(now)) {
-            if ("p2".equals(p.getId())) {
-                batch.set(fs.collection(C_BOOKMARKS).document("p2_" + SeedData.DEMO_USER),
-                        savedTrackMap("p2", SeedData.DEMO_USER, p));
-            }
         }
         Map<String, Object> meta = new HashMap<>();
         meta.put("version", 1L);

@@ -205,15 +205,6 @@ public class MainActivity extends BaseActivity {
         // Khởi tạo các chip lọc thể loại âm nhạc nhanh
         setupGenreFilterChips();
 
-        // Khởi tạo danh sách Gợi ý nghệ sĩ & bạn bè
-        RecyclerView rvSuggestions = findViewById(R.id.rv_suggestions);
-        if (rvSuggestions != null) {
-            rvSuggestions.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-            List<String> mockNames = Arrays.asList("Quang Hùng", "HIEUTHUHAI", "Rhyder", "Captain Boy", "Pháp Kiều", "Wren Evans");
-            List<String> mockUsernames = Arrays.asList("quanghung_masterd", "hieuthuhai", "rhyder", "captainboy", "phapkieu", "wrenevans");
-            rvSuggestions.setAdapter(new SuggestionAdapter(mockNames, mockUsernames));
-        }
-
         // Khởi tạo danh sách Bảng tin (Feed)
         if (rvFeed != null) {
             rvFeed.setLayoutManager(new LinearLayoutManager(this));
@@ -243,9 +234,6 @@ public class MainActivity extends BaseActivity {
         }
 
         handleIntentSearchQuery(getIntent());
-
-        // Giải thích dữ liệu minh họa (mỗi tài khoản ẩn riêng sau khi đã đọc)
-        setupSampleDataNotice();
 
         // Hiển thị ngay dữ liệu đã lưu trong SQLite, sau đó tải bản mới nhất từ Firebase
         refreshFeed();
@@ -330,23 +318,28 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    /** Dòng giải thích nguồn gốc dữ liệu minh họa trên Bảng tin (chạm để ẩn, ghi nhớ theo từng tài khoản). */
-    private void setupSampleDataNotice() {
-        View notice = findViewById(R.id.tv_sample_data_notice);
-        if (notice == null) return;
-        String key = "sample_notice_hidden_" + DatabaseHelper.norm(SessionManager.getCurrentUsername(this));
-        android.content.SharedPreferences prefs = getSharedPreferences("melodyverse_settings", MODE_PRIVATE);
-        notice.setVisibility(prefs.getBoolean(key, false) ? View.GONE : View.VISIBLE);
-        notice.setOnClickListener(v -> {
-            prefs.edit().putBoolean(key, true).apply();
-            notice.setVisibility(View.GONE);
-        });
-    }
-
-    /** Bước gợi ý nghệ sĩ: chỉ ghi quan hệ theo dõi sau khi người dùng xác nhận; có thể bỏ qua. */
+    /**
+     * Bước gợi ý theo dõi cho tài khoản mới: chỉ gợi ý các thành viên đã đăng ký thật; chỉ ghi quan hệ
+     * theo dõi sau khi người dùng xác nhận, có thể bỏ qua. Chưa có ai để gợi ý thì bỏ qua bước này.
+     */
     private void showArtistSuggestions() {
         String me = SessionManager.getCurrentUsername(this);
         if (me == null || isFinishing()) return;
+        sync.loadSuggestedUsers(me, 8, users -> {
+            if (isFinishing() || isDestroyed()) return;
+            List<UserModel> candidates = new ArrayList<>();
+            for (UserModel u : users) {
+                if (!dbHelper.isUserFollowed(me, u.getUsername())) candidates.add(u);
+            }
+            if (candidates.isEmpty()) {
+                AuthManager.markOnboardingDone(this, me);
+                return;
+            }
+            showArtistSuggestionsDialog(me, candidates);
+        });
+    }
+
+    private void showArtistSuggestionsDialog(String me, List<UserModel> candidates) {
         View view = getLayoutInflater().inflate(R.layout.dialog_artist_suggestions, null, false);
         android.widget.LinearLayout container = view.findViewById(R.id.layout_artist_options);
         androidx.appcompat.widget.AppCompatButton btnConfirm = view.findViewById(R.id.btn_artist_confirm);
@@ -358,9 +351,8 @@ public class MainActivity extends BaseActivity {
             btnConfirm.setAlpha(selected.isEmpty() ? 0.5f : 1f);
         };
         float density = getResources().getDisplayMetrics().density;
-        for (String artist : SeedData.SUGGESTED_ARTISTS) {
-            if (dbHelper.isUserFollowed(me, artist)) continue;
-            UserModel u = dbHelper.getUser(artist);
+        for (UserModel u : candidates) {
+            String artist = u.getUsername();
             android.widget.CheckBox cb = new android.widget.CheckBox(this);
             cb.setText(u.getFullName() + "  •  @" + artist + "\n" + u.getRole());
             cb.setTextColor(getResources().getColor(R.color.colorTextPrimary));
@@ -385,7 +377,7 @@ public class MainActivity extends BaseActivity {
         btnSkip.setOnClickListener(v -> {
             AuthManager.markOnboardingDone(this, me);
             dialog.dismiss();
-            Toast.makeText(this, "Bạn có thể theo dõi nghệ sĩ bất cứ lúc nào từ mục Gợi ý trên Bảng tin.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Bạn có thể theo dõi thành viên khác bất cứ lúc nào từ trang cá nhân của họ.", Toast.LENGTH_LONG).show();
         });
         btnConfirm.setOnClickListener(v -> {
             int count = 0;
@@ -394,7 +386,7 @@ public class MainActivity extends BaseActivity {
             }
             AuthManager.markOnboardingDone(this, me);
             dialog.dismiss();
-            Toast.makeText(this, "Đã theo dõi " + count + " nghệ sĩ!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Đã theo dõi " + count + " thành viên!", Toast.LENGTH_SHORT).show();
         });
         dialog.show();
     }

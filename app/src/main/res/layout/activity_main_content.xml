@@ -302,25 +302,6 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="2dp" />
 
-            <!-- Giải thích nguồn gốc dữ liệu minh họa (chạm để ẩn) -->
-            <TextView
-                android:id="@+id/tv_sample_data_notice"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="6dp"
-                android:background="@drawable/bg_tag_chip"
-                android:lineSpacingExtra="2dp"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="12dp"
-                android:paddingBottom="10dp"
-                android:text="Các bài viết, bình luận và hồ sơ gắn nhãn &quot;Minh họa&quot; là dữ liệu mẫu do MelodyVerse nạp sẵn để trình diễn. Các nghệ sĩ mẫu không có tài khoản đăng nhập thật. Nội dung bạn đăng, thích, bình luận, theo dõi đều được lưu vào tài khoản của bạn. (Chạm để ẩn)"
-                android:textColor="@color/colorTextSecondary"
-                android:textSize="12sp"
-                android:visibility="gone" />
 
             <!-- Thông báo số lượng kết quả tìm kiếm -->
             <TextView
