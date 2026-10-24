@@ -3,6 +3,7 @@ package com.example.melodyverse;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -202,6 +203,86 @@ public class AuthManager {
         sync.ensureWelcomeNotificationBlocking(username, user.getFullName());
         boolean needsOnboarding = Boolean.TRUE.equals(ud.getBoolean("needsOnboarding"));
         return new Result(Status.OK, username, user.isAdmin(), null, null, needsOnboarding);
+    }
+
+    // ===================================================================================
+    // Quên mật khẩu (Firebase Authentication gửi email đặt lại mật khẩu từ máy chủ Google)
+    // ===================================================================================
+
+    /** Gửi link đặt lại mật khẩu tới email của tài khoản (nhập username hoặc email). */
+    public void sendPasswordReset(String identifier, Callback cb) {
+        if (!sync.isOnline()) {
+            deliver(cb, Result.fail(MSG_OFFLINE, null));
+            return;
+        }
+        sync.runInBackground(() -> {
+            try {
+                deliver(cb, passwordResetBlocking(identifier.trim().toLowerCase()));
+            } catch (Exception e) {
+                deliver(cb, Result.fail(sync.isOnline() ? MSG_NETWORK : MSG_OFFLINE, null));
+            }
+        });
+    }
+
+    private Result passwordResetBlocking(String id) throws Exception {
+        boolean byUsername = !id.contains("@");
+        String email;
+        String provider = null;
+        if (byUsername) {
+            DocumentSnapshot ud = sync.await(fs.collection(SyncManager.C_USERS).document(DatabaseHelper.norm(id)).get());
+            if (!ud.exists()) return Result.fail("Không tìm thấy tài khoản @" + id + "!", FIELD_USERNAME);
+            email = ud.getString("email");
+            provider = ud.getString("provider");
+            if (email == null || email.isEmpty()) {
+                return Result.fail("Tài khoản này chưa có email nên không thể đặt lại mật khẩu!", FIELD_USERNAME);
+            }
+        } else {
+            email = id;
+            QuerySnapshot q = sync.await(fs.collection(SyncManager.C_USERS).whereEqualTo("email", email).limit(1).get());
+            if (!q.isEmpty()) provider = q.getDocuments().get(0).getString("provider");
+        }
+
+        if (PROVIDER_GOOGLE.equals(provider)) {
+            return Result.fail("Tài khoản này được tạo bằng Google nên không có mật khẩu. "
+                    + "Vui lòng chọn \"Tiếp tục với Google\" để đăng nhập!", FIELD_USERNAME);
+        }
+        if (SeedData.demoUsername(email) != null) {
+            return Result.fail("Tài khoản demo dùng email mẫu nên không nhận được thư. "
+                    + "Hãy thử với tài khoản đăng ký bằng email thật!", FIELD_USERNAME);
+        }
+
+        auth.setLanguageCode("vi"); // email đặt lại mật khẩu bằng tiếng Việt
+        try {
+            sync.await(auth.sendPasswordResetEmail(email));
+        } catch (ExecutionException e) {
+            Throwable c = e.getCause();
+            if (c instanceof FirebaseAuthInvalidUserException) {
+                return Result.fail("Không tìm thấy tài khoản với email này!", FIELD_USERNAME);
+            }
+            if (c instanceof FirebaseAuthInvalidCredentialsException) {
+                return Result.fail("Email không hợp lệ!", FIELD_USERNAME);
+            }
+            if (c instanceof FirebaseTooManyRequestsException) {
+                return Result.fail("Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau ít phút!", null);
+            }
+            throw e;
+        }
+        // Nhập bằng username thì chỉ hiện email đã che bớt, không lộ email của người khác
+        String shown = byUsername ? maskEmail(email) : email;
+        return new Result(Status.OK, null, false,
+                "Đã gửi link đặt lại mật khẩu tới " + shown + ".\n\n"
+                        + "Hãy mở email (kiểm tra cả mục Spam), bấm vào link để đặt mật khẩu mới rồi đăng nhập lại.", null);
+    }
+
+    /** minhthu@gmail.com → mi*****@gmail.com */
+    static String maskEmail(String email) {
+        int at = email.indexOf('@');
+        if (at <= 0) return email;
+        String name = email.substring(0, at);
+        String visible = name.length() <= 2 ? name.substring(0, 1) : name.substring(0, 2);
+        StringBuilder sb = new StringBuilder(visible);
+        for (int i = visible.length(); i < Math.max(name.length(), visible.length() + 3); i++) sb.append('*');
+        return sb.append(email.substring(at)).toString();
     }
 
     // ===================================================================================

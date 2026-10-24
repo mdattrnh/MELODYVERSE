@@ -2,7 +2,9 @@ package com.example.melodyverse;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,11 +63,9 @@ public class LoginActivity extends AppCompatActivity {
             });
         }
 
-        // Quên mật khẩu
+        // Quên mật khẩu: Firebase Authentication gửi email chứa link đặt lại mật khẩu
         if (tvForgotPassword != null) {
-            tvForgotPassword.setOnClickListener(v -> {
-                Toast.makeText(this, "Vui lòng kiểm tra email để đặt lại mật khẩu!", Toast.LENGTH_LONG).show();
-            });
+            tvForgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
         }
 
         // Đăng ký tài khoản - Chuyển sang RegisterActivity chuyên biệt
@@ -150,6 +150,56 @@ public class LoginActivity extends AppCompatActivity {
         if (btnLogin instanceof TextView) {
             ((TextView) btnLogin).setText(loading ? "Đang đăng nhập..." : loginButtonText);
         }
+    }
+
+    private void showForgotPasswordDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_forgot_password, null, false);
+        EditText etIdentifier = dialogView.findViewById(R.id.et_forgot_identifier);
+        // Điền sẵn tài khoản đang nhập ở màn đăng nhập (nếu có)
+        if (etUsername != null) etIdentifier.setText(etUsername.getText().toString().trim());
+
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
+                .setTitle("Quên Mật Khẩu")
+                .setView(dialogView)
+                .setPositiveButton("Gửi email", null)
+                .setNegativeButton("Hủy", null)
+                .create();
+
+        // Tự xử lý nút Gửi để hộp thoại không đóng khi nhập sai / đang gửi
+        dialog.setOnShowListener(d -> {
+            Button btnSend = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            btnSend.setOnClickListener(v -> {
+                String identifier = etIdentifier.getText().toString().trim();
+                if (identifier.isEmpty()) {
+                    etIdentifier.setError("Vui lòng nhập tên đăng nhập hoặc email!");
+                    etIdentifier.requestFocus();
+                    return;
+                }
+                btnSend.setEnabled(false);
+                btnSend.setText("Đang gửi...");
+                dialog.setCancelable(false);
+                new AuthManager(this).sendPasswordReset(identifier, result -> {
+                    if (isFinishing()) return;
+                    btnSend.setEnabled(true);
+                    btnSend.setText("Gửi email");
+                    dialog.setCancelable(true);
+                    if (result.status == AuthManager.Status.OK) {
+                        dialog.dismiss();
+                        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
+                                .setTitle("Đã Gửi Email")
+                                .setMessage(result.message)
+                                .setPositiveButton("Đã hiểu", null)
+                                .show();
+                    } else if (AuthManager.FIELD_USERNAME.equals(result.field)) {
+                        etIdentifier.setError(result.message);
+                        etIdentifier.requestFocus();
+                    } else {
+                        Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
+                    }
+                });
+            });
+        });
+        dialog.show();
     }
 
     private void showLockedDialog(String accountUsername) {

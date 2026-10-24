@@ -26,6 +26,14 @@ public class BugFixRulesTest {
     }
 
     @Test
+    public void passwordResetEmail_isMasked() {
+        assertEquals("mi*****@gmail.com", AuthManager.maskEmail("minhthu@gmail.com"));
+        // Tên email ngắn vẫn che ít nhất 3 ký tự
+        assertEquals("a***@gmail.com", AuthManager.maskEmail("ab@gmail.com"));
+        assertEquals("ab***@gmail.com", AuthManager.maskEmail("abc@gmail.com"));
+    }
+
+    @Test
     public void seedUsers_onlyContainDemoLoginAccounts() {
         // Không còn hồ sơ nghệ sĩ minh họa: chỉ nạp sẵn 2 tài khoản demo đăng nhập được
         Set<String> names = new HashSet<>();
