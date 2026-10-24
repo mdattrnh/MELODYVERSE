@@ -29,10 +29,6 @@ public class SessionManager {
         return prefs(context).getString(KEY_USERNAME, null);
     }
 
-    public static boolean isLoggedIn(Context context) {
-        return getCurrentUsername(context) != null;
-    }
-
     public static boolean isCurrentUser(Context context, String username) {
         String current = getCurrentUsername(context);
         return current != null && username != null && current.equalsIgnoreCase(username.replace("@", "").trim());

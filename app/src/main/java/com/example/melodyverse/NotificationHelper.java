@@ -5,7 +5,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
 /**
@@ -17,18 +16,16 @@ public class NotificationHelper {
     public static final int MUSIC_NOTIFICATION_ID = 1001;
 
     public static void createNotificationChannel(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_LOW // Để phát nhạc không kêu 'ting' khó chịu
-            );
-            channel.setDescription("Kênh thông báo phát nhạc và tin tức MelodyVerse");
-            
-            NotificationManager manager = context.getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
+        NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW // Để phát nhạc không kêu 'ting' khó chịu
+        );
+        channel.setDescription("Kênh thông báo phát nhạc và tin tức MelodyVerse");
+        
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        if (manager != null) {
+            manager.createNotificationChannel(channel);
         }
     }
 

@@ -100,22 +100,6 @@
                 android:textColor="@color/colorTextMuted"
                 android:textSize="12sp" />
 
-            <!-- Nhãn bài / hồ sơ thuộc dữ liệu mẫu phục vụ trình diễn -->
-            <TextView
-                android:id="@+id/tv_post_sample_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_tag_chip"
-                android:paddingStart="6dp"
-                android:paddingTop="1dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="1dp"
-                android:text="Minh họa"
-                android:textColor="@color/colorAccent"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 

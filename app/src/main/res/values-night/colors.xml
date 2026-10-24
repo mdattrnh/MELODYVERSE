@@ -5,28 +5,19 @@
     <color name="colorBackgroundGradientTop">#0A0E1A</color>
     <color name="colorBackgroundGradientMid">#0F172A</color>
     <color name="colorBackgroundGradientBottom">#16132F</color>
-    <color name="colorBackgroundSecondary">#131B2E</color>
     <color name="colorSurface">#131B2E</color>
-    <color name="colorSurfaceElevated">#1E293B</color>
-    <color name="colorSurfaceBorder">#2D3A56</color>
     <color name="colorBottomNav">#0B0F19</color>
 
     <!-- Vibrant Galaxy Accents -->
     <color name="colorAccent">#A78BFA</color>
-    <color name="colorAccentGlow">#C4B5FD</color>
     <color name="colorNeonPink">#F472B6</color>
     <color name="colorNeonCyan">#22D3EE</color>
     <color name="colorNeonOrange">#FB923C</color>
     <color name="colorGradientStart">#818CF8</color>
     <color name="colorGradientMid">#A78BFA</color>
     <color name="colorGradientEnd">#F472B6</color>
-    <color name="colorPurpleStart">#8B5CF6</color>
-    <color name="colorPurpleEnd">#EC4899</color>
 
     <!-- Framed Input Field Palette (Dark Galaxy Mode) -->
-    <color name="colorInputBackground">#161F33</color>
-    <color name="colorInputBorder">#2E3A59</color>
-    <color name="colorInputBorderFocused">#A78BFA</color>
     <color name="colorInputHint">#64748B</color>
 
     <!-- Crisp Text Hierarchy (Chữ Trắng Sáng Nổi Bật) -->
@@ -35,19 +26,12 @@
     <color name="colorTextMuted">#94A3B8</color>
 
     <!-- Interactive Button Tints -->
-    <color name="colorLikeActive">#F87171</color>
-    <color name="colorCommentActive">#34D399</color>
-    <color name="colorShareActive">#38BDF8</color>
     <color name="colorBookmarkActive">#FBBF24</color>
 
     <!-- Music & Equalizer -->
     <color name="colorGold">#FBBF24</color>
     <color name="colorSilver">#94A3B8</color>
     <color name="colorBronze">#F97316</color>
-    <color name="colorEqualizer">#F472B6</color>
-    <color name="colorEqualizerSecondary">#A78BFA</color>
-    <color name="colorMoodChill">#22D3EE</color>
-    <color name="colorMoodEnergy">#FB923C</color>
 
     <!-- ===== Bổ sung cho giao diện mới (redesign) ===== -->
     <color name="colorLine">#222B44</color>
@@ -55,12 +39,10 @@
     <color name="colorSurfaceSunken">#0F1626</color>
     <color name="colorViolet50">#1C1838</color>
     <color name="colorViolet100">#2A2452</color>
-    <color name="colorPink50">#331528</color>
     <color name="colorAmber50">#3A2A10</color>
     <color name="colorRed50">#3A1A20</color>
     <color name="colorDanger">#F87171</color>
     <color name="colorSuccess">#34D399</color>
     <color name="colorPlayingStart">#2E1065</color>
     <color name="colorPlayingEnd">#6D28D9</color>
-    <color name="transparent">#00000000</color>
 </resources>

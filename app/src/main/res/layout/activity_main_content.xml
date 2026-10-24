@@ -245,49 +245,6 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
-            <!-- Suggestions Header -->
-            <LinearLayout
-                android:id="@+id/layout_suggest_header"
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="12dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp">
-
-                <TextView
-                    android:id="@+id/tv_suggest"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Gợi ý nghệ sĩ &amp; bạn bè"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textStyle="bold"
-                    android:textSize="14.5sp" />
-
-                <TextView
-                    android:id="@+id/tv_see_all"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
-                    android:textColor="@color/colorAccent"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- Stories/Suggestions Horizontal RecyclerView -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_suggestions"
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                android:clipToPadding="false"
-                android:paddingStart="8dp"
-                android:paddingEnd="14dp" />
 
             <!-- Feed Header Title -->
             <TextView

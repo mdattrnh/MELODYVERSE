@@ -139,19 +139,6 @@ public class MainActivity extends BaseActivity {
             });
         }
 
-        // Nút "Xem tất cả" gợi ý -> Mở DiscoverActivity
-        View tvSeeAll = findViewById(R.id.tv_see_all);
-        if (tvSeeAll == null) {
-            tvSeeAll = findViewById(R.id.layout_suggest_header);
-        }
-        if (tvSeeAll != null) {
-            tvSeeAll.setOnClickListener(v -> {
-                Intent intent = new Intent(this, DiscoverActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
-            });
-        }
-
         ivClearSearch = findViewById(R.id.iv_clear_search);
         tvFeedTitle = findViewById(R.id.tv_feed_title);
         tvSearchSummary = findViewById(R.id.tv_search_summary);

@@ -24,10 +24,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         void onMusicPlayClicked(PostModel post);
     }
 
-    public interface OnPostItemClickListener {
-        void onPostItemClicked(PostModel post);
-    }
-
     public interface OnHashtagClickListener {
         void onHashtagClicked(String hashtag);
     }
@@ -35,7 +31,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private Context context;
     private List<PostModel> postList;
     private OnPostMusicClickListener musicClickListener;
-    private OnPostItemClickListener itemClickListener;
     private OnHashtagClickListener hashtagClickListener;
     private DatabaseHelper dbHelper;
 
@@ -48,10 +43,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         this.postList = postList;
         this.musicClickListener = listener;
         this.dbHelper = DatabaseHelper.getInstance(context);
-    }
-
-    public void setOnPostItemClickListener(OnPostItemClickListener listener) {
-        this.itemClickListener = listener;
     }
 
     @NonNull
@@ -103,10 +94,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             holder.tvGenreBadge.setText(post.getGenre());
         }
 
-        // Không còn dữ liệu mẫu: mọi bài viết đều do người dùng thật đăng, luôn ẩn nhãn "Minh họa"
-        if (holder.tvSampleBadge != null) {
-            holder.tvSampleBadge.setVisibility(View.GONE);
-        }
 
         // Nhãn đĩa than: cặp màu cố định theo từng bài (đồng nhất với màn Đang phát / Khám phá)
         if (holder.viewArtLabel != null) {
@@ -142,13 +129,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
         // Tương tác chạm vào bài viết -> Mở Màn hình Chi tiết bài viết (PostDetailActivity)
         View.OnClickListener openDetailListener = v -> {
-            if (itemClickListener != null) {
-                itemClickListener.onPostItemClicked(post);
-            } else {
-                Intent detailIntent = new Intent(context, PostDetailActivity.class);
-                detailIntent.putExtra(PostDetailActivity.EXTRA_POST_ID, post.getId());
-                context.startActivity(detailIntent);
-            }
+            Intent detailIntent = new Intent(context, PostDetailActivity.class);
+            detailIntent.putExtra(PostDetailActivity.EXTRA_POST_ID, post.getId());
+            context.startActivity(detailIntent);
         };
 
         holder.itemView.setOnClickListener(openDetailListener);
@@ -439,7 +422,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAvatar, ivMore, ivMusicPlay, ivLike, ivComment, ivShare, ivBookmark, ivPrivacyIcon;
         TextView tvAuthor, tvUsername, tvTime, tvCaption, tvSongTitle, tvSongArtist, tvGenreBadge;
-        TextView tvLikeCount, tvCommentCount, tvShareCount, tvPrivacyLabel, tvHashtag1, tvHashtag2, tvSampleBadge;
+        TextView tvLikeCount, tvCommentCount, tvShareCount, tvPrivacyLabel, tvHashtag1, tvHashtag2;
         View viewArtLabel;
         View layoutMusicCard, btnLikeContainer, btnCommentContainer, btnShareContainer, frameMusicArt;
         View layoutEqWave, eqBar1, eqBar2, eqBar3, eqBar4;
@@ -461,7 +444,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             layoutMusicCard = itemView.findViewById(R.id.layout_music_card);
             frameMusicArt = itemView.findViewById(R.id.frame_music_art);
             viewArtLabel = itemView.findViewById(R.id.view_music_art_label);
-            tvSampleBadge = itemView.findViewById(R.id.tv_post_sample_badge);
             tvSongTitle = itemView.findViewById(R.id.tv_music_title);
             tvSongArtist = itemView.findViewById(R.id.tv_music_artist);
             ivMusicPlay = itemView.findViewById(R.id.iv_music_play);

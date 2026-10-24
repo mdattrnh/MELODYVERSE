@@ -638,16 +638,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return countRows("SELECT COUNT(*) FROM " + TABLE_POSTS);
     }
 
-    public int getUserCount() {
-        return countRows("SELECT COUNT(*) FROM " + TABLE_USERS);
-    }
-
     public int getCommentCount() {
         return countRows("SELECT COALESCE(SUM(" + COL_COMMENT_COUNT + "), 0) FROM " + TABLE_POSTS);
-    }
-
-    public int getLockedUserCount() {
-        return countRows("SELECT COUNT(*) FROM " + TABLE_USERS + " WHERE " + COL_U_IS_LOCKED + " = 1");
     }
 
     /** Tổng số thao tác đang chờ đẩy lên Firebase. */
@@ -1563,13 +1555,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         while (c.moveToNext()) list.add(cursorToNotification(c));
         c.close();
         return list;
-    }
-
-    public NotificationModel getNotification(String id) {
-        Cursor c = getReadableDatabase().query(TABLE_NOTIFICATIONS, null, COL_N_ID + " = ?", new String[]{id}, null, null, null);
-        NotificationModel n = c.moveToFirst() ? cursorToNotification(c) : null;
-        c.close();
-        return n;
     }
 
     public int getUnreadNotificationCount(String recipient) {
