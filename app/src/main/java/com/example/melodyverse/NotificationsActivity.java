@@ -117,7 +117,7 @@ public class NotificationsActivity extends BaseActivity {
         }
         if (btnMarkAllRead != null) {
             boolean allRead = unread == 0;
-            btnMarkAllRead.setText(allRead ? "Đã đọc tất cả ✓" : "Đánh dấu đã đọc");
+            btnMarkAllRead.setText(allRead ? "Đã đọc tất cả" : "Đánh dấu đã đọc");
             btnMarkAllRead.setTextColor(ContextCompat.getColor(this, allRead ? R.color.colorTextSecondary : R.color.colorAccent));
             btnMarkAllRead.setEnabled(!allRead);
         }

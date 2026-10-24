@@ -293,7 +293,7 @@ public class MainActivity extends BaseActivity {
             if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             if (userInitiated) {
                 if (status == SyncManager.Status.OK) {
-                    Toast.makeText(this, "✓ Đã cập nhật bảng tin mới nhất", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đã cập nhật bảng tin mới nhất", Toast.LENGTH_SHORT).show();
                 } else if (status == SyncManager.Status.OFFLINE) {
                     Toast.makeText(this, "📴 Đang offline — đang hiển thị dữ liệu đã lưu trên máy", Toast.LENGTH_SHORT).show();
                 } else {

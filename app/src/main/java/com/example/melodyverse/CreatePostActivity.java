@@ -440,21 +440,33 @@ public class CreatePostActivity extends BaseActivity {
     }
 
     private void showPrivacySelectorDialog() {
-        String[] options = {
-                "🌐  Công khai (Mọi người đều nghe & thấy trên Bảng tin)",
-                "🔒  Riêng tư (Chỉ mình tôi nhìn thấy bài viết này)"
-        };
-        new androidx.appcompat.app.AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                .setTitle("Chế độ hiển thị bài viết")
-                .setSingleChoiceItems(options, isPrivate ? 1 : 0, (dialog, which) -> {
-                    isPrivate = (which == 1);
-                    updatePrivacyUi();
-                    dialog.dismiss();
-                    String modeMsg = isPrivate ? "Đã chuyển sang chế độ: Riêng tư 🔒" : "Đã chuyển sang chế độ: Công khai 🌐";
-                    Toast.makeText(this, modeMsg, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Đóng", null)
-                .show();
+        View dialogView = android.view.LayoutInflater.from(this).inflate(R.layout.dialog_post_privacy, null, false);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        View optPublic = dialogView.findViewById(R.id.option_privacy_public);
+        View optPrivate = dialogView.findViewById(R.id.option_privacy_private);
+        // Đánh dấu lựa chọn hiện tại
+        optPublic.setBackgroundResource(isPrivate ? R.drawable.bg_privacy_option : R.drawable.bg_privacy_option_selected);
+        optPrivate.setBackgroundResource(isPrivate ? R.drawable.bg_privacy_option_selected : R.drawable.bg_privacy_option);
+        dialogView.findViewById(R.id.iv_privacy_public_check).setVisibility(isPrivate ? View.INVISIBLE : View.VISIBLE);
+        dialogView.findViewById(R.id.iv_privacy_private_check).setVisibility(isPrivate ? View.VISIBLE : View.INVISIBLE);
+
+        optPublic.setOnClickListener(v -> { dialog.dismiss(); applyPrivacy(false); });
+        optPrivate.setOnClickListener(v -> { dialog.dismiss(); applyPrivacy(true); });
+        dialogView.findViewById(R.id.btn_dialog_privacy_close).setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    private void applyPrivacy(boolean makePrivate) {
+        isPrivate = makePrivate;
+        updatePrivacyUi();
+        String modeMsg = isPrivate ? "Đã chuyển sang chế độ: Riêng tư 🔒" : "Đã chuyển sang chế độ: Công khai 🌐";
+        Toast.makeText(this, modeMsg, Toast.LENGTH_SHORT).show();
     }
 
     private void updatePrivacyUi() {

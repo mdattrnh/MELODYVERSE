@@ -410,41 +410,70 @@ public class AdminActivity extends BaseActivity {
         }
     }
 
+    /**
+     * Dialog xác nhận thao tác kiểm duyệt, cùng giao diện với dialog đăng xuất.
+     * @param danger true = thao tác nguy hiểm (nền icon + nút xác nhận màu đỏ), false = màu tím chủ đạo
+     */
+    private void showAdminConfirmDialog(int iconRes, boolean danger, String title, String message,
+                                        String confirmText, Runnable onConfirm) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_confirm, null, false);
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        View iconBg = dialogView.findViewById(R.id.layout_dialog_admin_icon);
+        android.widget.ImageView ivIcon = dialogView.findViewById(R.id.iv_dialog_admin_icon);
+        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_admin_title);
+        TextView tvMsg = dialogView.findViewById(R.id.tv_dialog_admin_msg);
+        TextView btnCancel = dialogView.findViewById(R.id.btn_dialog_admin_cancel);
+        TextView btnConfirm = dialogView.findViewById(R.id.btn_dialog_admin_confirm);
+
+        iconBg.setBackgroundResource(danger ? R.drawable.bg_icon_danger : R.drawable.bg_icon_tonal);
+        ivIcon.setImageResource(iconRes);
+        ivIcon.setColorFilter(ContextCompat.getColor(this, danger ? R.color.colorDanger : R.color.colorAccent));
+        tvTitle.setText(title);
+        tvMsg.setText(message);
+        btnConfirm.setText(confirmText);
+        btnConfirm.setBackgroundResource(danger ? R.drawable.bg_button_danger : R.drawable.bg_gradient_button_purple);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            onConfirm.run();
+        });
+        dialog.show();
+    }
+
     private void showDeletePostConfirmDialog(PostModel post) {
-        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                .setTitle("Xác Nhận Xóa Bài")
-                .setMessage("Bạn có chắc chắn muốn xóa bài hát \"" + post.getSongTitle() + " - " + post.getArtistName()
-                        + "\" khỏi hệ thống không? Bình luận, lượt thích và báo cáo của bài cũng bị xóa.")
-                .setPositiveButton("Xóa ngay", (dialog, which) ->
-                        sync.adminDeletePost(post.getId(), adminResult("Đã xóa bài hát khỏi hệ thống thành công!")))
-                .setNegativeButton("Hủy", null)
-                .show();
+        showAdminConfirmDialog(R.drawable.ic_delete, true,
+                "Xóa bài viết?",
+                "Bạn có chắc chắn muốn xóa bài hát \"" + post.getSongTitle() + " - " + post.getArtistName()
+                        + "\" khỏi hệ thống không? Bình luận, lượt thích và báo cáo của bài cũng bị xóa.",
+                "Xóa ngay",
+                () -> sync.adminDeletePost(post.getId(), adminResult("Đã xóa bài hát khỏi hệ thống thành công!")));
     }
 
     /** Ẩn bài vi phạm khỏi cộng đồng (hoặc hiện lại bài đã ẩn). */
     private void confirmToggleHidden(PostModel post) {
         boolean hide = !post.isHiddenByAdmin();
-        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                .setTitle(hide ? "Ẩn bài viết vi phạm" : "Hiện lại bài viết")
-                .setMessage(hide
+        showAdminConfirmDialog(hide ? R.drawable.ic_lock : R.drawable.ic_public, hide,
+                hide ? "Ẩn bài viết vi phạm?" : "Hiện lại bài viết?",
+                hide
                         ? "Bài \"" + post.getSongTitle() + "\" sẽ không còn hiển thị với thành viên. Các báo cáo của bài được đánh dấu đã xử lý."
-                        : "Bài \"" + post.getSongTitle() + "\" sẽ hiển thị lại trên bảng tin cộng đồng.")
-                .setPositiveButton(hide ? "Ẩn bài" : "Hiện lại", (dialog, which) ->
-                        sync.adminSetPostHidden(post.getId(), hide,
-                                adminResult(hide ? "Đã ẩn bài viết vi phạm" : "Đã hiện lại bài viết")))
-                .setNegativeButton("Hủy", null)
-                .show();
+                        : "Bài \"" + post.getSongTitle() + "\" sẽ hiển thị lại trên bảng tin cộng đồng.",
+                hide ? "Ẩn bài" : "Hiện lại",
+                () -> sync.adminSetPostHidden(post.getId(), hide,
+                        adminResult(hide ? "Đã ẩn bài viết vi phạm" : "Đã hiện lại bài viết")));
     }
 
     /** Bài không vi phạm: bỏ qua (xóa) các báo cáo của bài. */
     private void confirmDismissReports(PostModel post) {
-        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                .setTitle("Bỏ qua báo cáo")
-                .setMessage("Xác nhận bài \"" + post.getSongTitle() + "\" không vi phạm và đóng các báo cáo của bài?")
-                .setPositiveButton("Bỏ qua", (dialog, which) ->
-                        sync.adminDismissReports(post.getId(), adminResult("Đã bỏ qua báo cáo của bài viết")))
-                .setNegativeButton("Hủy", null)
-                .show();
+        showAdminConfirmDialog(R.drawable.ic_check, false,
+                "Bỏ qua báo cáo?",
+                "Xác nhận bài \"" + post.getSongTitle() + "\" không vi phạm và đóng các báo cáo của bài?",
+                "Bỏ qua",
+                () -> sync.adminDismissReports(post.getId(), adminResult("Đã bỏ qua báo cáo của bài viết")));
     }
 
     private void toggleUserLock(UserModel user) {
@@ -454,21 +483,15 @@ public class AdminActivity extends BaseActivity {
         }
 
         boolean willLock = !user.isLocked();
-        String actionTitle = willLock ? "Khóa Tài Khoản Người Dùng" : "Mở Khóa Tài Khoản";
+        String actionTitle = willLock ? "Khóa tài khoản?" : "Mở khóa tài khoản?";
         String actionMsg = willLock
                 ? "Bạn có chắc chắn muốn khóa tài khoản @" + user.getUsername() + " (" + user.getFullName() + ")? Người dùng này sẽ bị chặn đăng nhập và vô hiệu hóa hoạt động."
                 : "Xác nhận mở khóa tài khoản @" + user.getUsername() + " (" + user.getFullName() + ")? Người dùng sẽ có thể đăng nhập trở lại.";
         String confirmText = willLock ? "Khóa ngay" : "Mở khóa";
 
-        new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
-                .setTitle(actionTitle)
-                .setMessage(actionMsg)
-                .setPositiveButton(confirmText, (dialog, which) -> {
-                    sync.adminSetLocked(user.getUsername(), willLock,
-                            adminResult("Đã " + (willLock ? "khóa" : "mở khóa") + " tài khoản @" + user.getUsername()));
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+        showAdminConfirmDialog(R.drawable.ic_lock, willLock, actionTitle, actionMsg, confirmText,
+                () -> sync.adminSetLocked(user.getUsername(), willLock,
+                        adminResult("Đã " + (willLock ? "khóa" : "mở khóa") + " tài khoản @" + user.getUsername())));
     }
 
     @Override
