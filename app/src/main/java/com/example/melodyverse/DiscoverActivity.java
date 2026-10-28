@@ -17,6 +17,11 @@ import java.util.List;
  */
 public class DiscoverActivity extends BaseActivity {
 
+    // Khóa lưu trạng thái khi xoay màn hình (Activity bị hủy và tạo lại)
+    private static final String STATE_SEARCH_OPEN = "state_discover_search_open";
+    private static final String STATE_WHEEL_REVEALED = "state_discover_wheel_revealed";
+    private static final String STATE_WHEEL_CENTER_POST = "state_discover_wheel_center_post";
+
     private DatabaseHelper dbHelper;
 
     // Bảng xếp hạng
@@ -51,9 +56,21 @@ public class DiscoverActivity extends BaseActivity {
         setContentLayout(R.layout.activity_discover);
         dbHelper = DatabaseHelper.getInstance(this);
 
+        // Xoay màn hình: khôi phục ô tìm kiếm đang mở, hiệu ứng vòng xoay đã chạy và đĩa đang nằm giữa.
+        // Nội dung ô tìm kiếm do EditText tự khôi phục (có id) → TextWatcher gọi lại applySearch().
+        if (savedInstanceState != null) {
+            wheelRevealed = savedInstanceState.getBoolean(STATE_WHEEL_REVEALED, false);
+        }
+
         setupChart();
         setupSearch();
-        setupDiscWheel();
+        setupDiscWheel(savedInstanceState);
+        if (savedInstanceState != null) {
+            View layoutSearchBar = findViewById(R.id.layout_discover_search_bar);
+            if (layoutSearchBar != null && savedInstanceState.getBoolean(STATE_SEARCH_OPEN, false)) {
+                layoutSearchBar.setVisibility(View.VISIBLE);
+            }
+        }
         loadChart();
         refreshChartFromServer();
     }
@@ -248,10 +265,14 @@ public class DiscoverActivity extends BaseActivity {
     // ===================================================================================
 
     /** Vòng xoay đĩa than: bài viết công khai trong app, hiện dần khi người dùng lướt tới. */
-    private void setupDiscWheel() {
+    private void setupDiscWheel(Bundle savedInstanceState) {
         discWheelSection = findViewById(R.id.layout_disc_wheel_section);
         discWheel = findViewById(R.id.rv_disc_wheel);
         if (discWheel == null || discWheelSection == null) return;
+        // Xoay màn hình: đưa lại đúng đĩa đang nằm giữa trước khi nạp danh sách
+        if (savedInstanceState != null) {
+            discWheel.setPendingCenterPostId(savedInstanceState.getString(STATE_WHEEL_CENTER_POST));
+        }
 
         discWheel.setListener(new DiscWheelView.Listener() {
             @Override
@@ -276,7 +297,8 @@ public class DiscoverActivity extends BaseActivity {
         float density = getResources().getDisplayMetrics().density;
         discWheelSection.setAlpha(0f);
         discWheelSection.setTranslationY(56 * density);
-        discWheel.hideForIntro();
+        // Hiệu ứng bung vòng cung chỉ chạy một lần, không lặp lại sau khi xoay màn hình
+        if (!wheelRevealed) discWheel.hideForIntro();
 
         androidx.core.widget.NestedScrollView scroll = findViewById(R.id.scroll_discover);
         if (scroll != null) {
@@ -373,6 +395,15 @@ public class DiscoverActivity extends BaseActivity {
         if (discWheel != null) {
             discWheel.setPlayingPostId(MusicService.isPlaying ? MusicService.currentPostId : null);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        View layoutSearchBar = findViewById(R.id.layout_discover_search_bar);
+        outState.putBoolean(STATE_SEARCH_OPEN, layoutSearchBar != null && layoutSearchBar.getVisibility() == View.VISIBLE);
+        outState.putBoolean(STATE_WHEEL_REVEALED, wheelRevealed);
+        if (discWheel != null) outState.putString(STATE_WHEEL_CENTER_POST, discWheel.getCenterPostId());
     }
 
     @Override

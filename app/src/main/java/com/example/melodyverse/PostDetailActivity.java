@@ -47,6 +47,14 @@ public class PostDetailActivity extends BaseActivity {
             "Bài viết này hiện không còn khả dụng do đã bị gỡ bỏ hoặc vi phạm tiêu chuẩn cộng đồng MelodyVerse.";
     private boolean closingUnavailable = false;
 
+    // Khóa lưu trạng thái khi xoay màn hình (Activity bị hủy và tạo lại)
+    private static final String STATE_SORT_TYPE = "state_detail_sort_type";
+    private static final String STATE_COMMENT_LIMIT = "state_detail_comment_limit";
+    private static final String STATE_HAS_SERVER_COMMENTS = "state_detail_has_server_comments";
+    private static final String STATE_PENDING_AUTO_PLAY = "state_detail_pending_auto_play";
+    private static final String STATE_HIGHLIGHT_COMMENT_ID = "state_detail_highlight_comment_id";
+    private static final String[] SORT_LABELS = {"Mới nhất", "Cũ nhất"};
+
     private boolean pendingAutoPlay = false;
     private String highlightCommentId;
 
@@ -95,6 +103,8 @@ public class PostDetailActivity extends BaseActivity {
         // Quản trị viên mở xem bài từ trang Admin: không hiện thanh điều hướng của thành viên
         if (bottomNavigationView != null && dbHelper.getUser(SessionManager.getCurrentUsername(this)).isAdmin()) {
             bottomNavigationView.setVisibility(View.GONE);
+            View navDivider = findViewById(R.id.nav_divider);
+            if (navDivider != null) navDivider.setVisibility(View.GONE);
         }
 
         // Lấy ID bài viết từ Intent
@@ -102,10 +112,21 @@ public class PostDetailActivity extends BaseActivity {
         if (postId == null || postId.isEmpty()) {
             postId = "p1";
         }
-        pendingAutoPlay = savedInstanceState == null && getIntent().getBooleanExtra(EXTRA_AUTO_PLAY, false);
-        highlightCommentId = getIntent().getStringExtra(EXTRA_HIGHLIGHT_COMMENT_ID);
+        boolean restoreServerComments = false;
+        if (savedInstanceState == null) {
+            pendingAutoPlay = getIntent().getBooleanExtra(EXTRA_AUTO_PLAY, false);
+            highlightCommentId = getIntent().getStringExtra(EXTRA_HIGHLIGHT_COMMENT_ID);
+        } else {
+            // Xoay màn hình: giữ thứ tự sắp xếp, số bình luận đã tải thêm, yêu cầu phát nhạc chưa thực hiện
+            pendingAutoPlay = savedInstanceState.getBoolean(STATE_PENDING_AUTO_PLAY, false);
+            highlightCommentId = savedInstanceState.getString(STATE_HIGHLIGHT_COMMENT_ID);
+            currentSortType = savedInstanceState.getInt(STATE_SORT_TYPE, 0);
+            commentLimit = savedInstanceState.getInt(STATE_COMMENT_LIMIT, DatabaseHelper.LIMIT_COMMENTS_PER_POST);
+            restoreServerComments = savedInstanceState.getBoolean(STATE_HAS_SERVER_COMMENTS, false);
+        }
 
         initViews();
+        if (tvCommentSortLabel != null) tvCommentSortLabel.setText(SORT_LABELS[currentSortType == 1 ? 1 : 0]);
         loadPostData();
         if (post == null) {
             if (!SyncManager.get(this).isOnline()) {
@@ -115,7 +136,7 @@ public class PostDetailActivity extends BaseActivity {
                 return;
             }
             // Bài chưa có trong bộ nhớ đệm: tải từ Firebase rồi mới hiển thị
-            if (scrollPostDetail != null) scrollPostDetail.setVisibility(View.INVISIBLE);
+            setPostContentVisibility(View.INVISIBLE);
         }
         setupListeners();
         setupCommentsRecyclerView();
@@ -126,6 +147,8 @@ public class PostDetailActivity extends BaseActivity {
             loadComments();
             loadSimilarPosts();
             maybeAutoPlay();
+            // Trước khi xoay đã tải thêm bình luận từ Firebase: tải lại đúng số lượng đó
+            if (restoreServerComments) fetchServerComments();
         }
         if (swipeRefresh != null) {
             swipeRefresh.setColorSchemeResources(R.color.colorAccent, R.color.colorNeonPink);
@@ -135,7 +158,9 @@ public class PostDetailActivity extends BaseActivity {
         reloadFromServer();
 
         // Tự động cuộn đến ô bình luận nếu được mở từ nút bình luận trên bảng tin
-        boolean shouldScroll = getIntent().getBooleanExtra(EXTRA_SCROLL_TO_COMMENTS, false);
+        // (chỉ lần mở đầu tiên, không lặp lại khi xoay màn hình)
+        boolean shouldScroll = savedInstanceState == null
+                && getIntent().getBooleanExtra(EXTRA_SCROLL_TO_COMMENTS, false);
         if (shouldScroll && highlightCommentId != null && !highlightCommentId.isEmpty()) {
             // Từ thông báo bình luận: cuộn tới đúng bình luận được nhắc tới (không bật bàn phím)
             scrollToHighlightedComment();
@@ -147,6 +172,31 @@ public class PostDetailActivity extends BaseActivity {
                 if (imm != null) imm.showSoftInput(etCommentInput, InputMethodManager.SHOW_IMPLICIT);
             });
         }
+    }
+
+    /**
+     * Ẩn / hiện nội dung bài viết trong lúc chờ tải từ Firebase.
+     * Bản dọc chỉ có một vùng cuộn; bản ngang tách cột bài viết, tiêu đề bình luận và ô nhập bình luận.
+     */
+    private void setPostContentVisibility(int visibility) {
+        if (scrollPostDetail != null) scrollPostDetail.setVisibility(visibility);
+        int[] landscapeOnlyIds = {R.id.scroll_post_detail_info, R.id.layout_detail_comments_header,
+                R.id.layout_detail_comment_bar};
+        for (int id : landscapeOnlyIds) {
+            View v = findViewById(id);
+            if (v != null) v.setVisibility(visibility);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_SORT_TYPE, currentSortType);
+        outState.putInt(STATE_COMMENT_LIMIT, commentLimit);
+        // Đang tải dở hoặc đã tải thêm bình luận từ Firebase: Activity mới sẽ tải lại
+        outState.putBoolean(STATE_HAS_SERVER_COMMENTS, serverComments != null || loadingComments);
+        outState.putBoolean(STATE_PENDING_AUTO_PLAY, pendingAutoPlay);
+        outState.putString(STATE_HIGHLIGHT_COMMENT_ID, highlightCommentId);
     }
 
     private void initViews() {
@@ -235,7 +285,7 @@ public class PostDetailActivity extends BaseActivity {
                 finish();
                 return;
             }
-            if (scrollPostDetail != null) scrollPostDetail.setVisibility(View.VISIBLE);
+            setPostContentVisibility(View.VISIBLE);
             loadComments();
             loadSimilarPosts();
             maybeAutoPlay();
@@ -510,7 +560,7 @@ public class PostDetailActivity extends BaseActivity {
     private void setupCommentSortButton() {
         if (btnCommentSort == null) return;
         btnCommentSort.setOnClickListener(v -> {
-            String[] sortOptions = new String[]{"Mới nhất", "Cũ nhất"};
+            String[] sortOptions = SORT_LABELS;
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
             builder.setTitle("Sắp xếp bình luận");
             builder.setSingleChoiceItems(sortOptions, currentSortType, (dialog, which) -> {
