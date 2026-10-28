@@ -18,7 +18,8 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
+            android:configChanges="orientation|screenSize"
             android:theme="@style/Theme.MelodyVerse.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
